@@ -84,17 +84,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-<div style='background: white; padding: 1.25rem; border-radius: 8px; margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border-left: 4px solid #0ea5e9;'>
-    <div style='color: #0f172a; font-weight: 700; font-size: 1.125rem; margin-bottom: 0.25rem;'>
-        🎭 SANDBOX MODE
-    </div>
-    <div style='color: #64748b; font-size: 0.875rem; font-weight: 500;'>
-        This demonstration uses synthetic data only. No real student information is included.
-    </div>
-</div>
-""", unsafe_allow_html=True)
+# Production mode - sandbox banner removed
 
 # MOCK DATA
 MOCK_STAFF = [
@@ -1274,9 +1264,6 @@ def generate_mock_incidents(n=70):
 # PAGES
 def render_login_page():
     st.markdown("## 🔐 Staff Login")
-    with st.container(border=True):
-        st.markdown("**Demo Credentials:**")
-        st.code("Email: emily.jones@example.com\nPassword: demo123")
     email = st.text_input("Email Address", placeholder="your.email@example.com", key="login_email")
     password = st.text_input("Password", type="password", placeholder="Enter password", key="login_pass")
     if st.button("Login", type="primary", use_container_width=True):
@@ -2547,4 +2534,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
