@@ -933,10 +933,10 @@ def load_students_from_db():
                 "placement_start": row['placement_start'],
                 "placement_end": row['placement_end']
             })
-        return students if students else MOCK_STUDENTS
+        return students  # Return empty list if no students in database
     except Exception as e:
         st.error(f"Error loading students: {e}")
-        return MOCK_STUDENTS
+        return []  # Return empty list on error
 
 def save_student_to_db(student):
     """Save a student to Supabase database"""
@@ -998,10 +998,10 @@ def load_staff_from_db():
                 "receive_critical_emails": row.get('receive_critical_emails', True),
                 "created_date": row.get('created_at', '')[:10] if row.get('created_at') else None
             })
-        return staff if staff else MOCK_STAFF
+        return staff  # Return what we have from database
     except Exception as e:
         st.error(f"Error loading staff: {e}")
-        return MOCK_STAFF
+        return []  # Return empty list on error
 
 def save_staff_to_db(staff_member):
     """Save a staff member to Supabase database"""
