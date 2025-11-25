@@ -7,6 +7,7 @@ import uuid
 import random
 from io import BytesIO
 import base64
+import bcrypt
 
 # SUPABASE CONNECTION
 try:
@@ -914,6 +915,12 @@ def generate_behaviour_analysis_plan_docx(student, full_df, top_ant, top_beh, to
 # SUPABASE DATABASE FUNCTIONS
 # ============================================
 
+def hash_password(plain_password: str) -> str:
+    """Hash a password using bcrypt"""
+    salt = bcrypt.gensalt(rounds=12)
+    hashed = bcrypt.hashpw(plain_password.encode('utf-8'), salt)
+    return hashed.decode('utf-8')
+
 def load_students_from_db():
     """Load students from Supabase database"""
     if not supabase:
@@ -990,7 +997,8 @@ def load_staff_from_db():
                 "id": str(row['id']),
                 "name": row['name'],
                 "email": row['email'],
-                "password": row['password'],
+                "password": row.get('password'),  # Keep for backward compatibility
+                "password_hash": row.get('password_hash', row.get('password')),  # Use password_hash if available
                 "role": row['role'],
                 "program": row.get('program'),
                 "phone": row.get('phone'),
@@ -1213,15 +1221,41 @@ def init_state():
     if "show_critical_prompt" not in ss: ss.show_critical_prompt = False
 
 def login_user(email: str, password: str) -> bool:
+    """Login user with bcrypt password verification"""
     email = (email or "").strip().lower()
     password = (password or "").strip()
-    if not email or not password: return False
+    if not email or not password: 
+        return False
+    
     for staff in st.session_state.staff:
-        if staff.get("email", "").lower() == email and staff.get("password", "") == password:
-            st.session_state.logged_in = True
-            st.session_state.current_user = staff
-            st.session_state.current_page = "landing"
-            return True
+        if staff.get("email", "").lower() == email:
+            # Get the stored hash
+            stored_hash = staff.get("password_hash", "")
+            if not stored_hash:
+                continue
+            
+            # Verify password against bcrypt hash
+            try:
+                # Handle both string and bytes
+                if isinstance(stored_hash, str):
+                    stored_hash = stored_hash.encode('utf-8')
+                if isinstance(password, str):
+                    password_bytes = password.encode('utf-8')
+                
+                if bcrypt.checkpw(password_bytes, stored_hash):
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
+            except Exception as e:
+                # If bcrypt fails, try plain text comparison as fallback (for migration)
+                if staff.get("password") == password:
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
+                continue
+    
     return False
 
 def go_to(page: str, **kwargs):
