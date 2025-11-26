@@ -189,15 +189,31 @@ def generate_hypothesis(antecedent, behaviour, consequence):
     antecedent_lower = antecedent.lower()
     behaviour_lower = behaviour.lower()
     
-    if any(word in antecedent_lower for word in ["instruction", "demand", "task", "transition", "work"]):
+    # Updated to match new antecedent categories
+    if any(word in antecedent_lower for word in [
+        "instruction", "demand", "task", "transition", "work", "non-preferred",
+        "literacy", "maths", "wait", "routine", "independently", "difficult"
+    ]):
         hypotheses.append("To avoid or escape the demand/task")
-    if any(word in antecedent_lower for word in ["attention", "shifted", "ignored", "alone"]):
+        
+    if any(word in antecedent_lower for word in [
+        "attention", "shifted", "ignored", "alone", "feedback", "conflict",
+        "interaction", "escalating", "injustice"
+    ]):
         hypotheses.append("To gain staff/peer attention")
-    if any(word in antecedent_lower for word in ["sensory", "loud", "noise", "bright", "touch"]):
+        
+    if any(word in antecedent_lower for word in [
+        "sensory", "loud", "noise", "bright", "touch", "crowded", "medication",
+        "hungry", "thirsty", "movement"
+    ]):
         hypotheses.append("To escape sensory discomfort or seek sensory input")
-    if any(word in antecedent_lower for word in ["denied", "can't have", "no", "wait"]):
+        
+    if any(word in antecedent_lower for word in [
+        "denied", "can't have", "no", "wait", "device", "finish", "preferred"
+    ]):
         hypotheses.append("To gain access to preferred item/activity")
-    if any(word in behaviour_lower for word in ["refusal", "defiance", "left", "ran"]):
+        
+    if any(word in behaviour_lower for word in ["refusal", "defiance", "left", "ran", "elopement"]):
         hypotheses.append("To assert control or autonomy")
     
     if not hypotheses:
@@ -252,30 +268,56 @@ FORM COMPLETED: {dt.strftime('%d/%m/%Y %H:%M')}
 
 
 def generate_hypothesis_ai(antecedent, behaviour, consequence=""):
-    """AI generates structured hypothesis from ABC data"""
+    """AI generates structured hypothesis from ABC data - ENHANCED VERSION"""
     ant_lower = (antecedent or "").lower()
     beh_lower = (behaviour or "").lower()
     cons_lower = (consequence or "").lower()
     
-    avoid_keywords = ["instruction", "demand", "task", "transition", "work", "difficult", "challenging"]
-    get_keywords = ["attention", "item", "toy", "want", "access", "denied"]
+    # Expanded keyword detection
+    avoid_keywords = [
+        "instruction", "demand", "task", "transition", "work", "difficult", "challenging",
+        "non-preferred", "literacy", "maths", "wait", "routine", "peer", "independently",
+        "interrupted", "finish", "teacher coming"
+    ]
     
+    get_keywords = [
+        "attention", "item", "toy", "want", "access", "denied", "device", "finish",
+        "preferred", "competition", "feedback"
+    ]
+    
+    sensory_keywords = [
+        "sensory", "loud", "noise", "touch", "bright", "crowded", "medication",
+        "hungry", "thirsty", "movement break"
+    ]
+    
+    attention_keywords = [
+        "attention", "staff", "peer", "ignored", "escalating", "feedback",
+        "conflict", "interaction", "injustice"
+    ]
+    
+    # Determine FUNCTION (To get vs To avoid)
     function = "To avoid"
     if any(word in ant_lower for word in get_keywords):
         function = "To get"
-    elif any(word in cons_lower for word in ["given", "received", "got"]):
+    elif any(word in cons_lower for word in ["given", "received", "got", "obtained"]):
         function = "To get"
-    elif "denied" in ant_lower or "can't" in ant_lower:
+    elif "denied" in ant_lower or "can't" in ant_lower or "wait" in ant_lower:
+        function = "To get"
+    elif "off a device" in ant_lower or "finish" in ant_lower:
         function = "To get"
     
+    # Determine ITEM (What they want to get or avoid)
     item = "Activity"
-    if any(word in ant_lower + beh_lower for word in ["attention", "staff", "peer", "ignored"]):
+    
+    if any(word in ant_lower + beh_lower for word in attention_keywords):
         item = "Attention"
-    elif any(word in ant_lower + beh_lower for word in ["sensory", "loud", "noise", "touch"]):
+    elif any(word in ant_lower + beh_lower for word in sensory_keywords):
         item = "Sensory"
-    elif any(word in ant_lower + beh_lower for word in ["toy", "item", "object", "food"]):
+    elif any(word in ant_lower + beh_lower for word in ["toy", "item", "object", "food", "device", "tangible"]):
         item = "Tangible"
-    elif any(word in ant_lower for word in ["instruction", "demand", "task", "work"]):
+    elif any(word in ant_lower for word in ["instruction", "demand", "task", "work", "learning", "maths", "literacy"]):
+        item = "Activity"
+    elif "transition" in ant_lower or "environment" in ant_lower or "classroom" in ant_lower:
         item = "Activity"
     
     return {"function": function, "item": item}
@@ -1591,6 +1633,10 @@ def render_incident_log_page():
         else:
             new_id = str(uuid.uuid4())
             is_critical = (severity >= 3) or manual_critical
+           # Generate AI hypothesis
+            hyp_ai = generate_hypothesis_ai(antecedent, behaviour, "")
+            hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
+            
             rec = {
                 "id": new_id, "student_id": student_id, "student_name": student["name"],
                 "date": inc_date.isoformat(), "time": inc_time.strftime("%H:%M:%S"),
@@ -1600,7 +1646,8 @@ def render_incident_log_page():
                 "severity": severity,
                 "reported_by": st.session_state.current_user["name"],
                 "duration_minutes": duration, "description": description or "", 
-                "is_critical": is_critical
+                "is_critical": is_critical,
+                "hypothesis": hypothesis_text  # ADD THIS LINE
             }
             st.session_state.incidents.append(rec)
             st.success("✅ Incident logged successfully")
@@ -1656,7 +1703,7 @@ def render_critical_incident_page():
             st.markdown(f"**Session:** {quick_inc['session']}")
         with col4:
             st.markdown(f"**Severity:** {quick_inc['severity']}")
-            st.markdown(f"**Behaviour:** {quick_inc['behaviour_type']}")
+        st.markdown(f"**Hypothesis:** {quick_inc.get('hypothesis', 'N/A')}")
     
     st.markdown("---")
     st.markdown("### ABCH Chronology")
