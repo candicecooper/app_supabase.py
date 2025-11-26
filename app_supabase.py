@@ -1033,9 +1033,7 @@ def save_staff_to_db(staff_member):
             "notes": staff_member.get('notes'),
             "receive_critical_emails": staff_member.get('receive_critical_emails', True)
         }
-        }
-        
-        if 'id' in staff_member and staff_member['id'].startswith('staff_'):
+                if 'id' in staff_member and staff_member['id'].startswith('staff_'):
             # New staff (generated ID from app)
             supabase.table('staff').insert(data).execute()
         else:
