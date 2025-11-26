@@ -119,12 +119,53 @@ MOCK_STUDENTS = [
 PROGRAM_NAMES = {"JP": "Junior Primary", "PY": "Primary Years", "SY": "Senior Years"}
 BEHAVIOUR_TYPES = ["Verbal Refusal", "Elopement", "Property Destruction", "Aggression (Peer)", 
                    "Aggression (Adult)", "Self-Harm", "Verbal Aggression", "Other"]
-ANTECEDENTS = ["Requested to transition", "Given instruction/demand", "Peer conflict", 
-               "Staff attention shifted", "Unstructured time", "Sensory overload", 
-               "Access denied", "Change in routine", "Difficult task"]
+ANTECEDENTS = [
+    "--- PEER ---",
+    "Peer - negative peer feedback",
+    "Peer - peer conflict/interaction", 
+    "Peer - participating in competition",
+    "Peer - losing against a peer/s",
+    "Peer - another student escalating",
+    "--- TRANSITION ---",
+    "Transition - to a non-preferred activity",
+    "Transition - from one activity to another",
+    "Transition - from one environment to another",
+    "Transition - another teacher coming into the program",
+    "Transition - from play/yard to classroom",
+    "Transition - from home to the program",
+    "Transition - off a device",
+    "--- INSTRUCTIONS ---",
+    "Instructions - following instructions given by an adult",
+    "Instructions - following task demands",
+    "--- ENGAGEMENT ---",
+    "Engagement - engaging in a non-preferred learning area (Maths/Literacy)",
+    "Engagement - having to wait",
+    "Engagement - change in routine",
+    "Engagement - learning task too difficult or perceived as difficult",
+    "Engagement - having to work with a peer",
+    "Engagement - working independently",
+    "Engagement - interrupted activity",
+    "Engagement - not being able to finish an activity",
+    "--- SENSORY ---",
+    "Sensory - crowded area",
+    "Sensory - noise",
+    "Sensory - environment too bright",
+    "Sensory - no medication",
+    "Sensory - hungry/thirsty",
+    "Sensory - unable to take a movement break",
+    "--- OTHER ---",
+    "Other - perceived injustice",
+    "Other - TRT (Temporary Relief Teacher)",
+    "Other - NIT teacher (New Initiatives Teacher)",
+    "Other - incident before coming to program",
+    "Other - verbalising not wanting to be at the program",
+    "Other - staff attention shifted",
+    "Other - unstructured time",
+    "Other - access denied"
+]
 INTERVENTIONS = ["CPI Supportive stance", "Offered break", "Reduced demand", "Provided choices", 
                 "Removed audience", "Visual supports", "Co-regulation", "Prompted coping skill", "Redirection"]
-LOCATIONS = ["JP Classroom", "PY Classroom", "SY Classroom", "Playground", "Library", "Admin", "Gate", "Toilets"]
+LOCATIONS = ["JP Classroom", "PY Classroom", "SY Classroom", "Playground", "Library", "Office", "Student Gate", "Toilets"]
 VALID_PAGES = ["login", "landing", "program_students", "incident_log", "critical_incident", "student_analysis", "admin_portal"]
 
 # AI HYPOTHESIS SYSTEM
