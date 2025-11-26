@@ -1017,22 +1017,15 @@ def save_staff_to_db(staff_member):
         return False
     
     try:
-        # Generate password hash if password is provided
-        password_hash = None
-        if staff_member.get('password'):
-            password_hash = hash_password(staff_member['password'])
-        
         data = {
             "name": staff_member['name'],
             "email": staff_member['email'],
             "password": staff_member['password'],
-            "password_hash": password_hash,
             "role": staff_member['role'],
             "program": staff_member.get('program'),
             "phone": staff_member.get('phone'),
             "notes": staff_member.get('notes'),
             "receive_critical_emails": staff_member.get('receive_critical_emails', True)
-        }
         }
         
         if 'id' in staff_member and staff_member['id'].startswith('staff_'):
@@ -2466,12 +2459,9 @@ def render_admin_portal():
                                 "receive_critical_emails": True,  # Default to receiving emails
                                 "created_date": date.today().isoformat()
                             }
-                            if save_staff_to_db(new_staff):
-                                st.session_state.staff.append(new_staff)
-                                st.success(f"✅ Added {staff_name} ({staff_email}) to database")
-                                st.rerun()
-                            else:
-                                st.error("❌ Failed to save staff member to database")
+                            st.session_state.staff.append(new_staff)
+                            st.success(f"✅ Added {staff_name} ({staff_email})")
+                            st.rerun()
                     else:
                         st.error("Please complete all required fields (Name, Email, Password, Role)")
         
