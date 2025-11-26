@@ -1275,6 +1275,14 @@ def login_user(email: str, password: str) -> bool:
                     return True
                 else:
                     st.write("❌ DEBUG: Bcrypt verification FAILED")
+            if staff.get("password") == password:
+        st.write("✅ DEBUG: Using plain password fallback - LOGIN SUCCESS!")
+        st.session_state.logged_in = True
+        st.session_state.current_user = staff
+        st.session_state.current_page = "landing"
+        return True
+    else:
+        st.write(f"❌ DEBUG: Plain password mismatch. DB has: '{staff.get('password')}', You entered: '{password}'") 
             except Exception as e:
                 st.write(f"⚠️ DEBUG: Bcrypt error: {e}")
                 # If bcrypt fails, try plain text comparison as fallback
