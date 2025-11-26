@@ -2459,11 +2459,13 @@ def render_admin_portal():
                                 "receive_critical_emails": True,  # Default to receiving emails
                                 "created_date": date.today().isoformat()
                             }
-                            st.session_state.staff.append(new_staff)
-                            st.success(f"✅ Added {staff_name} ({staff_email})")
-                            st.rerun()
-                    else:
-                        st.error("Please complete all required fields (Name, Email, Password, Role)")
+                            # Save to database first
+                            if save_staff_to_db(new_staff):
+                                st.session_state.staff.append(new_staff)
+                                st.success(f"✅ Added {staff_name} ({staff_email}) to database")
+                                st.rerun()
+                            else:
+                                st.error("❌ Failed to save staff member to database")
         
         st.markdown("---")
         
