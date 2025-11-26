@@ -1018,7 +1018,7 @@ def save_staff_to_db(staff_member):
     
     try:
         # Generate password hash if password is provided
-        def save_staff_to_db(staff_member):
+def save_staff_to_db(staff_member):
     """Save a staff member to Supabase database"""
     if not supabase:
         return False
