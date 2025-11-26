@@ -1258,9 +1258,6 @@ def login_user(email: str, password: str) -> bool:
             
             # Verify password against bcrypt hash
             try:
-                # Verify password against bcrypt hash
-            try:
-                # Handle both string and bytes
                 if isinstance(stored_hash, str):
                     stored_hash_bytes = stored_hash.encode('utf-8')
                 else:
@@ -1277,7 +1274,6 @@ def login_user(email: str, password: str) -> bool:
                     return True
                 else:
                     st.write("❌ DEBUG: Bcrypt verification FAILED")
-                    # Try plain password fallback
                     if staff.get("password") == password:
                         st.write("✅ DEBUG: Using plain password fallback - LOGIN SUCCESS!")
                         st.session_state.logged_in = True
@@ -1288,27 +1284,15 @@ def login_user(email: str, password: str) -> bool:
                         st.write(f"❌ DEBUG: Plain password mismatch")
             except Exception as e:
                 st.write(f"⚠️ DEBUG: Bcrypt error: {e}")
-                # If bcrypt fails with exception, try plain text
                 if staff.get("password") == password:
-                    st.write("✅ DEBUG: Plain password fallback (after exception) - LOGIN SUCCESS!")
+                    st.write("✅ DEBUG: Plain password fallback after exception - LOGIN SUCCESS!")
                     st.session_state.logged_in = True
                     st.session_state.current_user = staff
                     st.session_state.current_page = "landing"
                     return True
-                # If bcrypt fails, try plain text comparison as fallback
-                if staff.get("password") == password:
-                    st.write("✅ DEBUG: Plain password fallback match!")
-                    st.session_state.logged_in = True
-                    st.session_state.current_user = staff
-                    st.session_state.current_page = "landing"
-                    return True
-                else:
-                    st.write(f"❌ DEBUG: Plain password fallback mismatch")
-                    continue
     
     st.write("❌ DEBUG: No matching staff found")
     return False
-
 def go_to(page: str, **kwargs):
     if page not in VALID_PAGES: return
     st.session_state.current_page = page
