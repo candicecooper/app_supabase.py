@@ -1017,23 +1017,10 @@ def save_staff_to_db(staff_member):
         return False
     
     try:
-        # Generate password hash if password is provided
-def save_staff_to_db(staff_member):
-    """Save a staff member to Supabase database"""
-    if not supabase:
-        return False
-    
-    try:
-        # Generate password hash if password is provided
-        password_hash = None
-        if staff_member.get('password'):
-            password_hash = hash_password(staff_member['password'])
-        
         data = {
             "name": staff_member['name'],
             "email": staff_member['email'],
             "password": staff_member['password'],
-            "password_hash": password_hash,
             "role": staff_member['role'],
             "program": staff_member.get('program'),
             "phone": staff_member.get('phone'),
@@ -2620,4 +2607,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
