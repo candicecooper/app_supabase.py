@@ -1224,38 +1224,71 @@ def login_user(email: str, password: str) -> bool:
     """Login user with bcrypt password verification"""
     email = (email or "").strip().lower()
     password = (password or "").strip()
-    if not email or not password: 
+    
+    st.write(f"🔍 DEBUG: Attempting login with email: '{email}'")
+    st.write(f"🔍 DEBUG: Password length: {len(password)}")
+    st.write(f"🔍 DEBUG: Total staff in memory: {len(st.session_state.staff)}")
+    
+    if not email or not password:
+        st.write("❌ DEBUG: Email or password empty")
         return False
     
-    for staff in st.session_state.staff:
-        if staff.get("email", "").lower() == email:
+    for idx, staff in enumerate(st.session_state.staff):
+        staff_email = staff.get("email", "").lower()
+        st.write(f"🔍 DEBUG: Checking staff #{idx}: {staff_email}")
+        
+        if staff_email == email:
+            st.write(f"✅ DEBUG: Email match found!")
+            st.write(f"🔍 DEBUG: Staff has password field: {staff.get('password')}")
+            st.write(f"🔍 DEBUG: Staff has password_hash field: {staff.get('password_hash', '')[:30]}...")
+            
             # Get the stored hash
             stored_hash = staff.get("password_hash", "")
             if not stored_hash:
-                continue
+                st.write("⚠️ DEBUG: No password_hash found, trying plain password")
+                if staff.get("password") == password:
+                    st.write("✅ DEBUG: Plain password match!")
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
+                else:
+                    st.write(f"❌ DEBUG: Plain password mismatch. Expected: '{staff.get('password')}', Got: '{password}'")
+                    continue
             
             # Verify password against bcrypt hash
             try:
                 # Handle both string and bytes
                 if isinstance(stored_hash, str):
-                    stored_hash = stored_hash.encode('utf-8')
-                if isinstance(password, str):
-                    password_bytes = password.encode('utf-8')
+                    stored_hash_bytes = stored_hash.encode('utf-8')
+                else:
+                    stored_hash_bytes = stored_hash
+                    
+                password_bytes = password.encode('utf-8')
                 
-                if bcrypt.checkpw(password_bytes, stored_hash):
+                st.write(f"🔍 DEBUG: Attempting bcrypt verification...")
+                if bcrypt.checkpw(password_bytes, stored_hash_bytes):
+                    st.write("✅ DEBUG: Bcrypt verification SUCCESS!")
                     st.session_state.logged_in = True
                     st.session_state.current_user = staff
                     st.session_state.current_page = "landing"
                     return True
+                else:
+                    st.write("❌ DEBUG: Bcrypt verification FAILED")
             except Exception as e:
-                # If bcrypt fails, try plain text comparison as fallback (for migration)
+                st.write(f"⚠️ DEBUG: Bcrypt error: {e}")
+                # If bcrypt fails, try plain text comparison as fallback
                 if staff.get("password") == password:
+                    st.write("✅ DEBUG: Plain password fallback match!")
                     st.session_state.logged_in = True
                     st.session_state.current_user = staff
                     st.session_state.current_page = "landing"
                     return True
-                continue
+                else:
+                    st.write(f"❌ DEBUG: Plain password fallback mismatch")
+                    continue
     
+    st.write("❌ DEBUG: No matching staff found")
     return False
 
 def go_to(page: str, **kwargs):
