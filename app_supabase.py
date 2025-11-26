@@ -1333,18 +1333,7 @@ def generate_mock_incidents(n=70):
 # PAGES
 def render_login_page():
     st.markdown("## 🔐 Staff Login")
-      # DEBUG: Show connection status
-    if supabase:
-        st.success("✅ Database connected")
-        try:
-            staff_count = len(st.session_state.staff)
-            st.info(f"📊 Found {staff_count} staff members in database")
-            if staff_count > 0:
-                st.write("Staff emails found:", [s.get('email') for s in st.session_state.staff[:3]])
-        except Exception as e:
-            st.warning(f"⚠️ Could not load staff: {e}")
-    else:
-        st.error("❌ Database NOT connected - check secrets!")
+
     email = st.text_input("Email Address", placeholder="your.email@example.com", key="login_email")
     password = st.text_input("Password", type="password", placeholder="Enter password", key="login_pass")
     if st.button("Login", type="primary", use_container_width=True):
