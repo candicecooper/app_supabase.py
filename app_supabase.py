@@ -330,43 +330,182 @@ def format_hypothesis(hyp):
         return hyp
     else:
         return "Unknown"
-
 def show_severity_guide():
+    """Enhanced Behaviour Severity Continuum matching uploaded image"""
     st.markdown("""
-    <div style='background: white; padding: 1.25rem; border-radius: 8px; margin: 1rem 0; 
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;'>
-        <div style='color: #0f172a; font-weight: 700; margin-bottom: 1rem; font-size: 1rem;'>
-            📊 Severity Level Guide (from start to end of incident)
+    <div style='background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; 
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;'>
+        
+        <div style='text-align: center; margin-bottom: 1.5rem;'>
+            <h2 style='color: #1a1a1a; font-weight: 700; font-size: 1.8rem; margin: 0;'>
+                Behaviour Severity Continuum
+            </h2>
         </div>
-        <div style='display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem;'>
-            <div style='background: #f8fafc; padding: 1rem; border-radius: 6px; border: 2px solid #cbd5e1;'>
-                <div style='color: #0f172a; font-weight: 700; margin-bottom: 0.5rem;'>1 - Low</div>
-                <div style='color: #64748b; font-size: 0.8rem;'>Persistent minor</div>
+        
+        <div style='display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;'>
+            
+            <!-- LEVEL 1: GREEN -->
+            <div style='background: #81b29a; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 1</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Low Level /<br>Engaged
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Following instructions</li>
+                        <li>On task</li>
+                        <li>Minor defiance</li>
+                        <li>Avoiding work</li>
+                        <li>Answering back</li>
+                        <li>Mumbling, huffing</li>
+                        <li>Passive peer conflict</li>
+                        <li>Attention seeking</li>
+                    </ul>
+                </div>
+                <div style='background: #6b9b7f; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Redirect / provide options</li>
+                    <li>Give space</li>
+                    <li>Offer choice</li>
+                    <li>Acknowledge concern</li>
+                    <li>Maintain routine</li>
+                    <li>Active listening</li>
+                </ul>
             </div>
-            <div style='background: #f1f5f9; padding: 1rem; border-radius: 6px; border: 2px solid #94a3b8;'>
-                <div style='color: #0f172a; font-weight: 700; margin-bottom: 0.5rem;'>2 - Disruptive</div>
-                <div style='color: #64748b; font-size: 0.8rem;'>Impacts others</div>
+            
+            <!-- LEVEL 2: YELLOW -->
+            <div style='background: #f4d35e; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: #2c2c2c; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 2</div>
+                    <div style='color: #2c2c2c; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Escalating /<br>Dysregulated
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.3); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: #2c2c2c; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: #2c2c2c; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Raised voice</li>
+                        <li>Arguing, blaming</li>
+                        <li>Crying, frustration</li>
+                        <li>Pacing or mild exit attempts</li>
+                        <li>Throwing soft items (not dangerous)</li>
+                    </ul>
+                </div>
+                <div style='background: #d9b84d; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: #2c2c2c; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: #2c2c2c; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Reduce demands</li>
+                    <li>Offer space / movement break</li>
+                    <li>Provide limited choices</li>
+                    <li>Avoid power struggles</li>
+                </ul>
             </div>
-            <div style='background: #e2e8f0; padding: 1rem; border-radius: 6px; border: 2px solid #64748b;'>
-                <div style='color: #0f172a; font-weight: 700; margin-bottom: 0.5rem;'>3 - Concerning</div>
-                <div style='color: #475569; font-size: 0.8rem;'>Verbal aggression</div>
+            
+            <!-- LEVEL 3: ORANGE -->
+            <div style='background: #ee8434; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 3</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        High Escalation /<br>Significant Risk
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Yelling, swearing</li>
+                        <li>Slammed doors, hitting walls</li>
+                        <li>Throwing items with possible risk</li>
+                        <li>Attempting to run off</li>
+                        <li>Damaging property</li>
+                    </ul>
+                </div>
+                <div style='background: #d47230; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Increase distance</li>
+                    <li>Notify leadership/support</li>
+                    <li>Remove audience</li>
+                    <li>Complete Critical Incident Form</li>
+                </ul>
             </div>
-            <div style='background: #cbd5e1; padding: 1rem; border-radius: 6px; border: 2px solid #475569;'>
-                <div style='color: #0f172a; font-weight: 700; margin-bottom: 0.5rem;'>4 - Serious</div>
-                <div style='color: #334155; font-size: 0.8rem;'>Physical aggression</div>
+            
+            <!-- LEVEL 4: LIGHT RED -->
+            <div style='background: #c9555e; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 4</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Dangerous<br>Behaviour
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Attempts to hit, kick, grab</li>
+                        <li>Throwing dangerous objects</li>
+                        <li>Threats of violence</li>
+                        <li>Absconding into unsafe situations</li>
+                        <li>Beginning self-harm behaviour</li>
+                    </ul>
+                </div>
+                <div style='background: #b04850; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Evacuate nearby students</li>
+                    <li>Leadership/response team activated</li>
+                    <li>Maintain safety distance</li>
+                </ul>
             </div>
-            <div style='background: #94a3b8; padding: 1rem; border-radius: 6px; border: 2px solid #1e293b;'>
-                <div style='color: #fff; font-weight: 700; margin-bottom: 0.5rem;'>5 - Critical</div>
-                <div style='color: #f1f5f9; font-size: 0.8rem;'>Severe violence</div>
+            
+            <!-- LEVEL 5: DARK RED -->
+            <div style='background: #7d2e2e; padding: 1.2rem 0.8rem;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Crisis</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Crisis<br>Situation
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.15); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Physical violence causing or likely to cause injury</li>
+                        <li>Severe self-harm</li>
+                        <li>Use of weapons or dangerous items</li>
+                        <li>Full loss of control behaviour</li>
+                    </ul>
+                </div>
+                <div style='background: #5c2323; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Immediate emergency response</li>
+                    <li>Trained staff to manage situation</li>
+                    <li>Preserve evidence</li>
+                    <li>Complete Critical Incident Form</li>
+                </ul>
             </div>
+            
         </div>
-        <div style='margin-top: 1rem; padding: 0.75rem; background: #fffbeb; border-radius: 6px; border-left: 4px solid #f59e0b;'>
-            <div style='color: #92400e; font-weight: 600; font-size: 0.85rem;'>
-                ⚠️ Severity 3 or above requires a Critical Incident ABCH Form
+        
+        <div style='margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #f59e0b;'>
+            <div style='color: #92400e; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem;'>
+                ⚠️ Critical Incident Documentation Required
+            </div>
+            <div style='color: #92400e; font-size: 0.85rem; line-height: 1.5;'>
+                <strong>Level 3 or above</strong> requires a Critical Incident ABCH Form to be completed immediately after the incident is resolved.
             </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+
 
 def send_critical_incident_email(incident_data, student, staff_email, leader_email, admin_email):
     """Send email notification to all parties"""
