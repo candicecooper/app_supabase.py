@@ -507,6 +507,7 @@ def show_severity_guide():
 
 
 
+
 def send_critical_incident_email(incident_data, student, staff_email, leader_email, admin_email):
     """Send email notification to all parties"""
     st.info(f"""📧 **Email Notification Sent**
