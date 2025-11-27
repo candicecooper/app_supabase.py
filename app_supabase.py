@@ -1935,8 +1935,6 @@ def render_critical_incident_page():
             with col3:
                 if st.button("🏠 Program Landing", use_container_width=True, key="home_crit_after"):
                     go_to("landing")
-
-
 def render_student_analysis_page():
     """Comprehensive Data Analysis with Berry Street Education Model"""
     student_id = st.session_state.get("selected_student_id")
@@ -2002,7 +2000,6 @@ def render_student_analysis_page():
     if not quick_df.empty:
         quick_df["incident_type"] = "Quick"
         quick_df["date_parsed"] = pd.to_datetime(quick_df["date"])
-        # Handle intervention as list
         if "intervention" in quick_df.columns:
             quick_df["intervention_str"] = quick_df["intervention"].apply(lambda x: ", ".join(x) if isinstance(x, list) else str(x))
     
@@ -2016,6 +2013,10 @@ def render_student_analysis_page():
     full_df = pd.concat([quick_df, crit_df], ignore_index=True).sort_values("date_parsed")
     full_df["hour"] = pd.to_datetime(full_df["time"], format="%H:%M:%S", errors="coerce").dt.hour
     full_df["day_of_week"] = full_df["date_parsed"].dt.day_name()
+    
+    # Prepare split dataframes
+    quick_only_df = full_df[full_df['incident_type'] == 'Quick'].copy() if 'Quick' in full_df['incident_type'].values else pd.DataFrame()
+    crit_only_df = full_df[full_df['incident_type'] == 'Critical'].copy() if 'Critical' in full_df['incident_type'].values else pd.DataFrame()
     
     # OVERVIEW
     st.markdown("### 📈 Executive Summary")
@@ -2031,48 +2032,15 @@ def render_student_analysis_page():
     
     st.markdown("---")
     
-    # GRAPH 1: Daily Frequency
-    st.markdown("### 📅 Daily Incident Frequency")
-    daily = full_df.groupby(full_df["date_parsed"].dt.date).size().reset_index(name="count")
-    fig1 = go.Figure()
-    fig1.add_trace(go.Scatter(
-        x=daily["date_parsed"], y=daily["count"],
-        mode='lines+markers', line=dict(color='#334155', width=2),
-        marker=dict(size=7, color='#334155'),
-        fill='tozeroy', fillcolor='rgba(51, 65, 85, 0.1)'
-    ))
-    fig1.update_layout(
-        height=280, showlegend=False, xaxis_title="Date", yaxis_title="Total",
-        plot_bgcolor='white', paper_bgcolor='white',
-        font=dict(color='#334155', size=11),
-        yaxis=dict(tickmode='linear', tick0=0, dtick=1)
-    )
-    st.plotly_chart(fig1, use_container_width=True)
-    with st.expander("💡 Clinical Interpretation (Berry Street Body Domain)"):
-        st.markdown("**Pattern Recognition:** Look for patterns (e.g., Mondays, after breaks). " +
-                   "**Berry Street Body:** Schedule extra regulation supports during high-frequency periods - breathing, movement breaks, sensory activities. " +
-                   "Increasing frequency may indicate student's nervous system is dysregulated and needs Body domain strategies.")
-    st.markdown("---")
+    # ================================================================
+    # ENHANCED GRAPH 1: DAILY FREQUENCY
+    # ================================================================
     
-    # GRAPH 2: Top Behaviours
-    # ENHANCED GRAPHS FOR STUDENT ANALYSIS PAGE
-# This replaces/enhances the graphs starting around line 1828
-
-# ================================================================
-# PART 1: ENHANCED DAILY FREQUENCY WITH CRITICAL COMPARISON
-# Replace lines 1828-1849
-# ================================================================
-
     st.markdown("### 📅 Daily Incident Frequency - Regular vs Critical")
     st.caption("Understanding the relationship between regular incidents and critical escalations")
     
-    # Prepare data
-    quick_only_df = full_df[full_df['incident_type'] == 'Quick'].copy() if 'Quick' in full_df['incident_type'].values else pd.DataFrame()
-    crit_only_df = full_df[full_df['incident_type'] == 'Critical'].copy() if 'Critical' in full_df['incident_type'].values else pd.DataFrame()
-    
     fig1 = go.Figure()
     
-    # Regular incidents (stacked bars)
     if not quick_only_df.empty:
         daily_quick = quick_only_df.groupby(quick_only_df["date_parsed"].dt.date).size().reset_index(name="count")
         fig1.add_trace(go.Bar(
@@ -2086,7 +2054,6 @@ def render_student_analysis_page():
             hovertemplate='<b>Date:</b> %{x}<br><b>Regular:</b> %{y}<extra></extra>'
         ))
     
-    # Critical incidents (stacked bars)
     if not crit_only_df.empty:
         daily_crit = crit_only_df.groupby(crit_only_df["date_parsed"].dt.date).size().reset_index(name="count")
         fig1.add_trace(go.Bar(
@@ -2108,37 +2075,13 @@ def render_student_analysis_page():
         plot_bgcolor='#f8fafc',
         paper_bgcolor='white',
         font=dict(color='#0f172a', size=12, family='Arial'),
-        yaxis=dict(
-            tickmode='linear',
-            tick0=0,
-            dtick=1,
-            gridcolor='#e2e8f0',
-            gridwidth=1,
-            showline=True,
-            linewidth=2,
-            linecolor='#cbd5e1'
-        ),
-        xaxis=dict(
-            showline=True,
-            linewidth=2,
-            linecolor='#cbd5e1',
-            gridcolor='#e2e8f0'
-        ),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
-            bgcolor='rgba(255,255,255,0.8)',
-            bordercolor='#cbd5e1',
-            borderwidth=1
-        ),
+        yaxis=dict(tickmode='linear', tick0=0, dtick=1, gridcolor='#e2e8f0', gridwidth=1, showline=True, linewidth=2, linecolor='#cbd5e1'),
+        xaxis=dict(showline=True, linewidth=2, linecolor='#cbd5e1', gridcolor='#e2e8f0'),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, bgcolor='rgba(255,255,255,0.8)', bordercolor='#cbd5e1', borderwidth=1),
         hovermode='x unified'
     )
     st.plotly_chart(fig1, use_container_width=True)
     
-    # Calculate escalation rate
     if not quick_only_df.empty and not crit_only_df.empty:
         escalation_rate = (len(crit_only_df) / len(quick_only_df)) * 100 if len(quick_only_df) > 0 else 0
         col1, col2, col3 = st.columns(3)
@@ -2159,19 +2102,16 @@ def render_student_analysis_page():
             "to prevent critical escalation."
         )
     st.markdown("---")
-
-# ================================================================
-# PART 2: ENHANCED BEHAVIOURS WITH CRITICAL COMPARISON
-# Replace lines 1851-1871
-# ================================================================
-
+    
+    # ================================================================
+    # ENHANCED GRAPH 2: BEHAVIOURS
+    # ================================================================
+    
     st.markdown("### 🎯 Behaviour Types - Regular vs Critical")
     st.caption("Which behaviours escalate to critical incidents?")
     
-    # Get top 6 behaviours overall
     all_behaviours = full_df["behaviour_type"].value_counts().head(6).index.tolist()
     
-    # Count by type
     quick_beh_counts = []
     crit_beh_counts = []
     for beh in all_behaviours:
@@ -2182,70 +2122,33 @@ def render_student_analysis_page():
     
     fig2 = go.Figure()
     
-    # Regular incidents
     fig2.add_trace(go.Bar(
-        y=all_behaviours,
-        x=quick_beh_counts,
-        name='Regular',
-        orientation='h',
+        y=all_behaviours, x=quick_beh_counts, name='Regular', orientation='h',
         marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
-        text=quick_beh_counts,
-        textposition='inside',
+        text=quick_beh_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black'),
         hovertemplate='<b>%{y}</b><br>Regular: %{x}<extra></extra>'
     ))
     
-    # Critical incidents
     fig2.add_trace(go.Bar(
-        y=all_behaviours,
-        x=crit_beh_counts,
-        name='Critical',
-        orientation='h',
+        y=all_behaviours, x=crit_beh_counts, name='Critical', orientation='h',
         marker=dict(color='#ef4444', line=dict(color='white', width=1)),
-        text=crit_beh_counts,
-        textposition='inside',
+        text=crit_beh_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black'),
         hovertemplate='<b>%{y}</b><br>Critical: %{x}<extra></extra>'
     ))
     
     fig2.update_layout(
-        height=350,
-        barmode='stack',
-        xaxis_title="<b>Incident Count</b>",
-        yaxis_title="",
-        plot_bgcolor='#f8fafc',
-        paper_bgcolor='white',
+        height=350, barmode='stack', xaxis_title="<b>Incident Count</b>", yaxis_title="",
+        plot_bgcolor='#f8fafc', paper_bgcolor='white',
         font=dict(color='#0f172a', size=12, family='Arial'),
-        xaxis=dict(
-            tickmode='linear',
-            tick0=0,
-            dtick=1,
-            gridcolor='#e2e8f0',
-            gridwidth=1,
-            showline=True,
-            linewidth=2,
-            linecolor='#cbd5e1'
-        ),
-        yaxis=dict(
-            showline=True,
-            linewidth=2,
-            linecolor='#cbd5e1'
-        ),
-        legend=dict(
-            orientation="h",
-            yanchor="bottom",
-            y=1.02,
-            xanchor="right",
-            x=1,
-            bgcolor='rgba(255,255,255,0.8)',
-            bordercolor='#cbd5e1',
-            borderwidth=1
-        ),
+        xaxis=dict(tickmode='linear', tick0=0, dtick=1, gridcolor='#e2e8f0', gridwidth=1, showline=True, linewidth=2, linecolor='#cbd5e1'),
+        yaxis=dict(showline=True, linewidth=2, linecolor='#cbd5e1'),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, bgcolor='rgba(255,255,255,0.8)', bordercolor='#cbd5e1', borderwidth=1),
         hovermode='y unified'
     )
     st.plotly_chart(fig2, use_container_width=True)
     
-    # Show escalation risk per behaviour
     st.markdown("**Escalation Risk by Behaviour:**")
     risk_data = []
     for i, beh in enumerate(all_behaviours):
@@ -2259,28 +2162,27 @@ def render_student_analysis_page():
         st.markdown(risk_item)
     
     with st.expander("💡 Clinical Interpretation (Behaviour as Communication)"):
-        primary_beh = all_behaviours[0]
-        st.markdown(
-            f"**Primary Concern:** {primary_beh} is the most common behaviour. "
-            "Behaviours with high escalation rates (>50%) need immediate intervention planning.\n\n"
-            "**Behaviour Analysis:** Focus on high-risk behaviours first. If a behaviour frequently escalates, "
-            "it means the student lacks skills or supports to regulate at that level.\n\n"
-            "**Berry Street:** All behaviour is communication. High escalation rates tell us the student needs:\n"
-            "1. **BODY**: More regulation tools before the behaviour occurs\n"
-            "2. **RELATIONSHIP**: Stronger connection to trusted adults who can co-regulate\n"
-            "3. **STAMINA**: Skill-building for persistence through challenges"
-        )
+        if all_behaviours:
+            primary_beh = all_behaviours[0]
+            st.markdown(
+                f"**Primary Concern:** {primary_beh} is the most common behaviour. "
+                "Behaviours with high escalation rates (>50%) need immediate intervention planning.\n\n"
+                "**Behaviour Analysis:** Focus on high-risk behaviours first. If a behaviour frequently escalates, "
+                "it means the student lacks skills or supports to regulate at that level.\n\n"
+                "**Berry Street:** All behaviour is communication. High escalation rates tell us the student needs:\n"
+                "1. **BODY**: More regulation tools before the behaviour occurs\n"
+                "2. **RELATIONSHIP**: Stronger connection to trusted adults who can co-regulate\n"
+                "3. **STAMINA**: Skill-building for persistence through challenges"
+            )
     st.markdown("---")
-
-# ================================================================
-# PART 3: ENHANCED TRIGGERS WITH CRITICAL COMPARISON  
-# Replace lines 1873-1893
-# ================================================================
-
+    
+    # ================================================================
+    # ENHANCED GRAPH 3: TRIGGERS
+    # ================================================================
+    
     st.markdown("### 🔍 Trigger Analysis - What Leads to Critical Escalation?")
     st.caption("Understanding which antecedents most often result in critical incidents")
     
-    # Get top 6 triggers
     all_triggers = full_df["antecedent"].value_counts().head(6).index.tolist()
     
     quick_ant_counts = []
@@ -2294,34 +2196,22 @@ def render_student_analysis_page():
     fig3 = go.Figure()
     
     fig3.add_trace(go.Bar(
-        y=all_triggers,
-        x=quick_ant_counts,
-        name='Regular',
-        orientation='h',
+        y=all_triggers, x=quick_ant_counts, name='Regular', orientation='h',
         marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
-        text=quick_ant_counts,
-        textposition='inside',
+        text=quick_ant_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black')
     ))
     
     fig3.add_trace(go.Bar(
-        y=all_triggers,
-        x=crit_ant_counts,
-        name='Critical',
-        orientation='h',
+        y=all_triggers, x=crit_ant_counts, name='Critical', orientation='h',
         marker=dict(color='#ef4444', line=dict(color='white', width=1)),
-        text=crit_ant_counts,
-        textposition='inside',
+        text=crit_ant_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black')
     ))
     
     fig3.update_layout(
-        height=350,
-        barmode='stack',
-        xaxis_title="<b>Incident Count</b>",
-        yaxis_title="",
-        plot_bgcolor='#f8fafc',
-        paper_bgcolor='white',
+        height=350, barmode='stack', xaxis_title="<b>Incident Count</b>", yaxis_title="",
+        plot_bgcolor='#f8fafc', paper_bgcolor='white',
         font=dict(color='#0f172a', size=12, family='Arial'),
         xaxis=dict(tickmode='linear', tick0=0, dtick=1, gridcolor='#e2e8f0', showline=True, linewidth=2, linecolor='#cbd5e1'),
         yaxis=dict(showline=True, linewidth=2, linecolor='#cbd5e1'),
@@ -2329,7 +2219,6 @@ def render_student_analysis_page():
     )
     st.plotly_chart(fig3, use_container_width=True)
     
-    # Critical trigger analysis
     st.markdown("**Critical Escalation Risk by Trigger:**")
     for i, ant in enumerate(all_triggers):
         total = quick_ant_counts[i] + crit_ant_counts[i]
@@ -2351,109 +2240,218 @@ def render_student_analysis_page():
             "**Low-Risk Triggers (<30%):** Student managing well with current supports - maintain strategies."
         )
     st.markdown("---")
-
     
-    # GRAPH 3: Top Triggers
-    st.markdown("### 🔍 Most Common Triggers (Antecedents)")
-    ant_counts = full_df["antecedent"].value_counts().head(5)
-    fig3 = go.Figure()
-    fig3.add_trace(go.Bar(
-        y=ant_counts.index, x=ant_counts.values,
-        orientation='h', marker=dict(color='#64748b'),
-        text=ant_counts.values, textposition='outside'
-    ))
-    fig3.update_layout(
-        height=280, showlegend=False, xaxis_title="Total",
-        xaxis=dict(tickmode="linear", tick0=0, dtick=1),
-        plot_bgcolor='white', paper_bgcolor='white',
-        font=dict(color='#334155', size=11)
-    )
-    st.plotly_chart(fig3, use_container_width=True)
-    with st.expander("💡 Clinical Interpretation (Proactive Strategies)"):
-        st.markdown(f"**Key trigger:** {ant_counts.index[0]}. " +
-                   "**Behaviour Analysis:** Plan proactive supports before this occurs - antecedent manipulation is most effective prevention. " +
-                   "**Berry Street Stamina:** Build student's capacity to persist through challenging moments.")
-    st.markdown("---")
+    # ================================================================
+    # ENHANCED GRAPH 4: SEVERITY WITH ZONES
+    # ================================================================
     
-    # GRAPH 4: Severity Trend
-    st.markdown("### 📊 Severity Over Time")
+    st.markdown("### 📊 Severity Trajectory - Window of Tolerance Analysis")
+    st.caption("Tracking whether incidents are getting more or less severe over time")
+    
     fig4 = go.Figure()
-    fig4.add_trace(go.Scatter(
-        x=full_df["date_parsed"], y=full_df["severity"],
-        mode='markers', marker=dict(size=8, color='#334155', opacity=0.6)
-    ))
-    if len(full_df) >= 2:
+    
+    fig4.add_hrect(y0=0, y1=2.5, fillcolor="#d1fae5", opacity=0.2, 
+                   annotation_text="Within Window (Regulation)", annotation_position="top left", line_width=0)
+    fig4.add_hrect(y0=2.5, y1=3.5, fillcolor="#fef3c7", opacity=0.2,
+                   annotation_text="Edge of Window", annotation_position="top left", line_width=0)
+    fig4.add_hrect(y0=3.5, y1=5.5, fillcolor="#fee2e2", opacity=0.2,
+                   annotation_text="Outside Window (Crisis)", annotation_position="top left", line_width=0)
+    
+    if not quick_only_df.empty:
+        fig4.add_trace(go.Scatter(
+            x=quick_only_df["date_parsed"], y=quick_only_df["severity"],
+            mode='markers', name='Regular',
+            marker=dict(size=12, color='#3b82f6', opacity=0.7, line=dict(color='white', width=1.5)),
+            hovertemplate='<b>Date:</b> %{x}<br><b>Severity:</b> %{y}<extra></extra>'
+        ))
+    
+    if not crit_only_df.empty:
+        fig4.add_trace(go.Scatter(
+            x=crit_only_df["date_parsed"], y=crit_only_df["severity"],
+            mode='markers', name='Critical',
+            marker=dict(size=15, color='#ef4444', opacity=0.8, symbol='diamond', line=dict(color='white', width=2)),
+            hovertemplate='<b>Date:</b> %{x}<br><b>Severity:</b> %{y}<extra></extra>'
+        ))
+    
+    if len(full_df) >= 3:
         z = np.polyfit(range(len(full_df)), full_df["severity"], 1)
         p = np.poly1d(z)
+        trend_color = '#22c55e' if z[0] < 0 else '#ef4444'
         fig4.add_trace(go.Scatter(
             x=full_df["date_parsed"], y=p(range(len(full_df))),
-            mode='lines', line=dict(color='#94a3b8', width=2, dash='dash'),
-            name='Trend'
+            mode='lines', name='Trend',
+            line=dict(color=trend_color, width=3, dash='dash'),
+            hovertemplate='Trend<extra></extra>'
         ))
+    
     fig4.update_layout(
-        height=280, yaxis=dict(range=[0, 6]), xaxis_title="Date", yaxis_title="Severity",
+        height=400, xaxis_title="<b>Date</b>", yaxis_title="<b>Severity Level</b>",
+        yaxis=dict(range=[0, 5.5], tickmode='linear', tick0=0, dtick=1, gridcolor='#e2e8f0', showline=True, linewidth=2, linecolor='#cbd5e1'),
+        xaxis=dict(showline=True, linewidth=2, linecolor='#cbd5e1', gridcolor='#e2e8f0'),
         plot_bgcolor='white', paper_bgcolor='white',
-        font=dict(color='#334155', size=11)
+        font=dict(color='#0f172a', size=12, family='Arial'),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, bgcolor='rgba(255,255,255,0.9)', bordercolor='#cbd5e1', borderwidth=1),
+        hovermode='closest'
     )
     st.plotly_chart(fig4, use_container_width=True)
     
-    trend_dir = "increasing" if len(full_df) >= 2 and full_df.tail(5)["severity"].mean() > full_df.head(5)["severity"].mean() else "decreasing"
-    with st.expander("💡 Clinical Interpretation (Progress Monitoring)"):
-        st.markdown(f"Severity appears **{trend_dir}** over time. " +
-                   ("**Action Required:** Review strategies - may need stronger Body and Relationship supports. " if trend_dir == "increasing" 
-                    else "**Positive Progress:** Current Berry Street strategies showing effect. Continue Body and Relationship focus. ") +
-                   "Monitor for plateaus which may indicate need for strategy adjustment or focus on Engagement domain.")
+    if len(full_df) >= 5:
+        recent_avg = full_df.tail(5)["severity"].mean()
+        early_avg = full_df.head(5)["severity"].mean()
+        trend_dir = "improving" if recent_avg < early_avg else "worsening" if recent_avg > early_avg else "stable"
+        trend_emoji = "📈" if trend_dir == "improving" else "📉" if trend_dir == "worsening" else "➡️"
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Early Average", f"{early_avg:.1f}", help="First 5 incidents")
+        with col2:
+            st.metric("Recent Average", f"{recent_avg:.1f}", help="Last 5 incidents")
+        with col3:
+            st.metric("Trend", f"{trend_emoji} {trend_dir.title()}")
+    
+    with st.expander("💡 Clinical Interpretation (Window of Tolerance)"):
+        st.markdown(
+            "**Window of Tolerance (Siegel, 1999):** The optimal arousal zone where the student can think, learn, and regulate.\n\n"
+            "**Green Zone (Severity 1-2):** Student is within or near their window. Accessible to support.\n\n"
+            "**Yellow Zone (Severity 2.5-3.5):** Student is at the edge. CO-REGULATION NEEDED NOW.\n\n"
+            "**Red Zone (Severity 3.5-5):** Outside window in survival mode. Safety first, teach later."
+        )
     st.markdown("---")
     
-    # GRAPH 5: Location Hotspots
-    st.markdown("### 📍 Location Hotspots")
-    loc_counts = full_df["location"].value_counts().head(5)
+    # ================================================================
+    # ENHANCED GRAPH 5: LOCATION
+    # ================================================================
+    
+    st.markdown("### 📍 Location Hotspots - Where Do Critical Incidents Occur?")
+    st.caption("Environmental factors and escalation patterns by location")
+    
+    all_locations = full_df["location"].value_counts().head(6).index.tolist()
+    
+    quick_loc_counts = []
+    crit_loc_counts = []
+    for loc in all_locations:
+        quick_count = len(quick_only_df[quick_only_df["location"] == loc]) if not quick_only_df.empty else 0
+        crit_count = len(crit_only_df[crit_only_df["location"] == loc]) if not crit_only_df.empty else 0
+        quick_loc_counts.append(quick_count)
+        crit_loc_counts.append(crit_count)
+    
     fig5 = go.Figure()
+    
     fig5.add_trace(go.Bar(
-        y=loc_counts.index, x=loc_counts.values,
-        orientation='h', marker=dict(color='#64748b'),
-        text=loc_counts.values, textposition='outside'
+        y=all_locations, x=quick_loc_counts, name='Regular', orientation='h',
+        marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
+        text=quick_loc_counts, textposition='inside',
+        textfont=dict(color='white', size=11, family='Arial Black')
     ))
+    
+    fig5.add_trace(go.Bar(
+        y=all_locations, x=crit_loc_counts, name='Critical', orientation='h',
+        marker=dict(color='#ef4444', line=dict(color='white', width=1)),
+        text=crit_loc_counts, textposition='inside',
+        textfont=dict(color='white', size=11, family='Arial Black')
+    ))
+    
     fig5.update_layout(
-        height=280, showlegend=False, xaxis_title="Total",
-        xaxis=dict(tickmode="linear", tick0=0, dtick=1),
-        plot_bgcolor='white', paper_bgcolor='white',
-        font=dict(color='#334155', size=11)
+        height=350, barmode='stack', xaxis_title="<b>Incident Count</b>", yaxis_title="",
+        plot_bgcolor='#f8fafc', paper_bgcolor='white',
+        font=dict(color='#0f172a', size=12, family='Arial'),
+        xaxis=dict(tickmode='linear', tick0=0, dtick=1, gridcolor='#e2e8f0', showline=True, linewidth=2, linecolor='#cbd5e1'),
+        yaxis=dict(showline=True, linewidth=2, linecolor='#cbd5e1'),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, bgcolor='rgba(255,255,255,0.8)', bordercolor='#cbd5e1', borderwidth=1)
     )
     st.plotly_chart(fig5, use_container_width=True)
+    
+    st.markdown("**Environmental Risk Assessment:**")
+    for i, loc in enumerate(all_locations):
+        total = quick_loc_counts[i] + crit_loc_counts[i]
+        if total > 0:
+            risk_pct = (crit_loc_counts[i] / total) * 100
+            if risk_pct > 60:
+                risk_level = "🔴 HIGH RISK ENVIRONMENT"
+                recommendation = "Immediate environmental modification needed"
+            elif risk_pct > 30:
+                risk_level = "🟡 MODERATE RISK"
+                recommendation = "Enhanced supervision and supports"
+            else:
+                risk_level = "🟢 MANAGED ENVIRONMENT"
+                recommendation = "Current strategies effective"
+            st.markdown(f"**{loc}**: {risk_pct:.0f}% escalate - {risk_level} - *{recommendation}*")
+    
     with st.expander("💡 Clinical Interpretation (Environmental Strategies)"):
-        st.markdown(f"Most incidents in **{loc_counts.index[0]}**. " +
-                   "Consider: environmental modifications (lighting, noise, space), increased staff support, " +
-                   "**Berry Street Body:** sensory-friendly adjustments, calming spaces, visual supports.")
+        if all_locations:
+            st.markdown(
+                f"**Primary Hotspot:** {all_locations[0]}\n\n"
+                "**Berry Street BODY - Sensory Environment:**\n"
+                "• Lighting: Consider natural light or lamps\n"
+                "• Noise: Provide noise-cancelling headphones or quiet spaces\n"
+                "• Space: Create clear pathways and defined areas"
+            )
     st.markdown("---")
     
-    # GRAPH 6: Time of Day
-    st.markdown("### ⏰ Time of Day Patterns")
-    session_counts = full_df["session"].value_counts()
+    # ================================================================
+    # ENHANCED GRAPH 6: TIME OF DAY
+    # ================================================================
+    
+    st.markdown("### ⏰ Time of Day Patterns - When Does Escalation Occur?")
+    st.caption("Understanding daily rhythm and predicting high-risk periods")
+    
+    session_order = ['Morning', 'Middle', 'Afternoon']
+    
+    quick_session_counts = []
+    crit_session_counts = []
+    for session in session_order:
+        quick_count = len(quick_only_df[quick_only_df["session"] == session]) if not quick_only_df.empty and 'session' in quick_only_df.columns else 0
+        crit_count = len(crit_only_df[crit_only_df["session"] == session]) if not crit_only_df.empty and 'session' in crit_only_df.columns else 0
+        quick_session_counts.append(quick_count)
+        crit_session_counts.append(crit_count)
+    
     fig6 = go.Figure()
+    
     fig6.add_trace(go.Bar(
-        x=session_counts.index, y=session_counts.values,
-        marker=dict(color='#475569'),
-        text=session_counts.values, textposition='outside'
+        x=session_order, y=quick_session_counts, name='Regular',
+        marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
+        text=quick_session_counts, textposition='inside',
+        textfont=dict(color='white', size=12, family='Arial Black')
     ))
+    
+    fig6.add_trace(go.Bar(
+        x=session_order, y=crit_session_counts, name='Critical',
+        marker=dict(color='#ef4444', line=dict(color='white', width=1)),
+        text=crit_session_counts, textposition='inside',
+        textfont=dict(color='white', size=12, family='Arial Black')
+    ))
+    
     fig6.update_layout(
-        height=280, showlegend=False, yaxis_title="Total",
-        plot_bgcolor='white', paper_bgcolor='white',
-        font=dict(color='#334155', size=11)
+        height=350, barmode='stack', xaxis_title="<b>Time of Day</b>", yaxis_title="<b>Incident Count</b>",
+        plot_bgcolor='#f8fafc', paper_bgcolor='white',
+        font=dict(color='#0f172a', size=12, family='Arial'),
+        yaxis=dict(tickmode='linear', tick0=0, dtick=1, gridcolor='#e2e8f0', showline=True, linewidth=2, linecolor='#cbd5e1'),
+        xaxis=dict(showline=True, linewidth=2, linecolor='#cbd5e1'),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, bgcolor='rgba(255,255,255,0.8)', bordercolor='#cbd5e1', borderwidth=1)
     )
     st.plotly_chart(fig6, use_container_width=True)
-    with st.expander("💡 Clinical Interpretation (Regulation Timing)"):
-        st.markdown(f"Peak time: **{session_counts.index[0]}**. " +
-                   "**Berry Street Body:** Provide proactive regulation before this period - breathing exercises, movement breaks, sensory check-ins. " +
-                   "Build student's self-regulation capacity through predictable regulation routines.")
+    
+    st.markdown("**Escalation Risk by Time of Day:**")
+    for i, session in enumerate(session_order):
+        total = quick_session_counts[i] + crit_session_counts[i]
+        if total > 0:
+            risk_pct = (crit_session_counts[i] / total) * 100
+            risk_emoji = "🔴" if risk_pct > 50 else "🟡" if risk_pct > 25 else "🟢"
+            st.markdown(f"{risk_emoji} **{session}**: {risk_pct:.0f}% escalate to critical ({total} total incidents)")
+    
+    with st.expander("💡 Clinical Interpretation (Circadian Regulation)"):
+        if quick_session_counts:
+            peak_session = session_order[quick_session_counts.index(max(quick_session_counts))] if max(quick_session_counts) > 0 else "Unknown"
+            st.markdown(
+                f"**Peak Incident Time:** {peak_session}\n\n"
+                "**Berry Street BODY:** Proactive regulation before peak periods - breathing, movement, sensory check-ins."
+            )
     st.markdown("---")
-
     
     # QUICK VS CRITICAL COMPARISON SECTION
     st.markdown("## 📊 Quick vs Critical Incident Analysis")
     st.caption("Understanding the relationship between quick logs and critical incidents helps identify escalation patterns")
     
-    # Separate quick and critical incidents
     quick_only = [i for i in quick if not i.get("is_critical")]
     critical_data = crit
     
@@ -2465,101 +2463,7 @@ def render_student_analysis_page():
     
     st.markdown("---")
     
-    # COMPARISON GRAPH 1: Frequency over time
-    st.markdown("### 📈 Incident Type Over Time")
-    
-    if len(quick_only) > 0 or len(critical_data) > 0:
-        fig_comp1 = go.Figure()
-        
-        # Quick incidents line
-        if len(quick_only) > 0:
-            quick_df_temp = pd.DataFrame(quick_only)
-            quick_df_temp["date_parsed"] = pd.to_datetime(quick_df_temp["date"])
-            quick_daily = quick_df_temp.groupby(quick_df_temp["date_parsed"].dt.date).size().reset_index(name="count")
-            fig_comp1.add_trace(go.Scatter(
-                x=quick_daily["date_parsed"], y=quick_daily["count"],
-                mode='lines+markers', name='Quick Incidents',
-                line=dict(color='#3b82f6', width=2),
-                marker=dict(size=6, color='#3b82f6')
-            ))
-        
-        # Critical incidents line
-        if len(critical_data) > 0:
-            crit_dates = []
-            for c in critical_data:
-                date_str = c.get("created_at", c.get("date", datetime.now().isoformat()))
-                try:
-                    crit_dates.append(datetime.fromisoformat(date_str).date())
-                except:
-                    pass
-            
-            if crit_dates:
-                crit_df_temp = pd.DataFrame({"date": crit_dates})
-                crit_daily = crit_df_temp.groupby("date").size().reset_index(name="count")
-                fig_comp1.add_trace(go.Scatter(
-                    x=crit_daily["date"], y=crit_daily["count"],
-                    mode='lines+markers', name='Critical Incidents',
-                    line=dict(color='#ef4444', width=2),
-                    marker=dict(size=6, color='#ef4444')
-                ))
-        
-        fig_comp1.update_layout(
-            height=300, xaxis_title="Date", yaxis_title="Total",
-            plot_bgcolor='white', paper_bgcolor='white',
-            font=dict(color='#334155', size=11),
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            yaxis=dict(tickmode='linear', tick0=0, dtick=1)
-        )
-        st.plotly_chart(fig_comp1, use_container_width=True)
-        
-        with st.expander("💡 Clinical Interpretation (Window of Tolerance)"):
-            st.markdown("**Pattern Recognition:** Increasing critical incidents suggest student spending more time outside Window of Tolerance. " +
-                       "**Window of Tolerance:** Critical incidents indicate hyper-arousal (fight/flight) or hypo-arousal (shutdown). " +
-                       "Focus on widening window through consistent co-regulation.")
-    
-    st.markdown("---")
-    
-    # COMPARISON GRAPH 2: Severity distribution
-    st.markdown("### 📊 Severity Distribution")
-    
-    if len(quick_only) > 0:
-        quick_sev = pd.DataFrame(quick_only)["severity"].value_counts().sort_index()
-        crit_sev_counts = [0] * 5
-        for c in critical_data:
-            sev = c.get("severity", 3)
-            if 1 <= sev <= 5:
-                crit_sev_counts[sev-1] += 1
-        
-        fig_sev = go.Figure()
-        fig_sev.add_trace(go.Bar(
-            x=list(range(1, 6)), y=[quick_sev.get(i, 0) for i in range(1, 6)],
-            name='Quick Incidents', marker=dict(color='#3b82f6'),
-            text=[quick_sev.get(i, 0) for i in range(1, 6)], textposition='outside'
-        ))
-        fig_sev.add_trace(go.Bar(
-            x=list(range(1, 6)), y=crit_sev_counts,
-            name='Critical Incidents', marker=dict(color='#ef4444'),
-            text=crit_sev_counts, textposition='outside'
-        ))
-        
-        fig_sev.update_layout(
-            height=300, xaxis_title="Severity Level", yaxis_title="Total",
-            plot_bgcolor='white', paper_bgcolor='white',
-            font=dict(color='#334155', size=11), barmode='group',
-            legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            xaxis=dict(tickmode='linear', tick0=1, dtick=1),
-            yaxis=dict(tickmode='linear', tick0=0, dtick=1)
-        )
-        st.plotly_chart(fig_sev, use_container_width=True)
-        
-        with st.expander("💡 Clinical Interpretation (Arousal States)"):
-            st.markdown("**Severity 1-2:** Student within/near window - accessible to support. " +
-                       "**Severity 3+:** Outside window - in survival mode. " +
-                       "**Goal:** Intervene at 1-2 before leaving window. Co-regulation most effective when thinking brain still accessible.")
-    
-    st.markdown("---")
-    
-    # GRAPH 7-10 and rest of analysis...
+    # Day of Week
     st.markdown("### 📆 Day of Week Patterns")
     day_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
     day_counts = full_df["day_of_week"].value_counts().reindex(day_order, fill_value=0)
@@ -2578,11 +2482,11 @@ def render_student_analysis_page():
     
     high_day = day_counts.idxmax()
     with st.expander("💡 Clinical Interpretation (Berry Street Relationship)"):
-        st.markdown(f"**{high_day}** has most incidents. Consider connection routines: Monday welcome/check-in, Friday regulation support. " +
-                   "**Berry Street Relationship:** Strong connections reduce incidents. Pattern may indicate when student needs extra relational support.")
+        st.markdown(f"**{high_day}** has most incidents. Consider connection routines. " +
+                   "**Berry Street Relationship:** Strong connections reduce incidents.")
     st.markdown("---")
     
-    # CLINICAL SUMMARY with Berry Street
+    # CLINICAL SUMMARY
     st.markdown("### 🧠 Clinical Summary")
     st.caption("Evidence-based interpretation using ABA, Trauma-Informed Practice, Berry Street Education Model, and CPI principles")
     
@@ -2591,7 +2495,6 @@ def render_student_analysis_page():
     top_loc = full_df["location"].mode()[0] if len(full_df) > 0 else "Unknown"
     top_session = full_df["session"].mode()[0] if len(full_df) > 0 else "Unknown"
     
-    # Calculate risk score
     recent = full_df.tail(7)
     risk_score = min(100, int(
         (len(recent) / 7 * 10) +
@@ -2599,7 +2502,6 @@ def render_student_analysis_page():
         (len(full_df[full_df["incident_type"] == "Critical"]) / len(full_df) * 50)
     ))
     risk_level = "LOW" if risk_score < 30 else "MODERATE" if risk_score < 60 else "HIGH"
-    risk_color = "#10b981" if risk_score < 30 else "#f59e0b" if risk_score < 60 else "#ef4444"
     
     st.info(f"""
     **Key Patterns Identified:**
@@ -2609,40 +2511,22 @@ def render_student_analysis_page():
     - Peak time: **{top_session}**
     - Risk Level: **{risk_level}** ({risk_score}/100)
     
-    **Behaviour Analysis Framework:** {student['name']} is most vulnerable when "{top_ant}" occurs in {top_loc} during {top_session}. 
-    This behaviour is a safety strategy and communication method. The behaviour serves a function - likely escape/avoidance or attention-seeking based on patterns.
-    
-    **Trauma-Informed & Berry Street Lens:** Behaviours represent adaptive responses to perceived threat. Student's nervous system is responding to environmental cues. 
-    **Berry Street Education Model** emphasizes five domains:
-    - **Body:** Self-regulation, wellbeing, sensory needs
-    - **Relationship:** Positive connections with adults and peers
-    - **Stamina:** Persistence, engagement, coping with challenges
-    - **Engagement:** Readiness for learning, curiosity
-    - **Character:** Values, agency, identity
-    
-    **Foundation First:** Focus on Body (regulation) and Relationship (connection) domains before expecting Engagement or Character development.
-    
-    **CPI Alignment:** Use Supportive Stance, low slow voice, reduce audience, one key adult maintains connection. 
-    Behaviour is communication - understand the message before responding.
+    **Berry Street Focus:** Body (regulation) and Relationship (connection) domains are foundation.
     """)
     
     st.success(f"""
-    **Evidence-Based Recommendations (Berry Street Framework):**
+    **Evidence-Based Recommendations:**
     
-    **1. Body Domain (Regulation):** Regulated start before {top_session}, breathing exercises, movement breaks, sensory check-ins in {top_loc}, zones of regulation
-    
-    **2. Relationship Domain (Connection):** Key adult check-in before "{top_ant}", relationship-building activities, acknowledgment of feelings, co-regulation strategies
-    
-    **3. Stamina Domain (Persistence):** Link to Personal & Social Capability, teach help-seeking, practice requesting breaks, build coping strategies
-    
-    **4. SMART Goal:** Over 5 weeks, use help-seeking strategy in 4/5 opportunities with support (supports Body and Relationship). Review {(datetime.now() + timedelta(weeks=5)).strftime('%d/%m/%Y')}.
+    **1. Body Domain:** Regulated start before {top_session}, breathing exercises, movement breaks
+    **2. Relationship Domain:** Key adult check-in, acknowledgment of feelings, co-regulation
+    **3. Stamina Domain:** Teach help-seeking, practice requesting breaks
+    **4. SMART Goal:** Over 5 weeks, use help-seeking strategy in 4/5 opportunities
     """)
     
     st.markdown("---")
     
-    # EXPORT with Berry Street branding
+    # EXPORT
     st.markdown("### 📄 Export Data & Reports")
-    st.caption("Professional reports prepared by Learning and Behaviour Unit using Berry Street Education Model")
     
     col1, col2 = st.columns(2)
     
@@ -2657,25 +2541,21 @@ def render_student_analysis_page():
         )
     
     with col2:
-        with st.spinner("Generating Behaviour Analysis Plan with graphs..."):
+        with st.spinner("Generating Behaviour Analysis Plan..."):
             docx_file = generate_behaviour_analysis_plan_docx(
                 student, full_df, top_ant, top_beh, top_loc, top_session, risk_score, risk_level
             )
         if docx_file:
             st.download_button(
-                "📄 Behaviour Analysis Plan (Word with Graphs)",
+                "📄 Behaviour Analysis Plan (Word)",
                 docx_file,
                 file_name=f"BAP_{student['name'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                use_container_width=True,
-                help="Professional report with 6 embedded graphs, Berry Street framework, and evidence-based recommendations"
+                use_container_width=True
             )
-        else:
-            st.error("Unable to generate BAP. Please ensure kaleido is installed.")
     
     st.markdown("---")
     
-    # Bottom Navigation
     col1, col2 = st.columns(2)
     with col1:
         if st.button("⬅ Back to Students", type="primary", key="back_analysis_bottom", use_container_width=True):
@@ -2683,6 +2563,8 @@ def render_student_analysis_page():
     with col2:
         if st.button("🏠 Program Landing", key="home_analysis_bottom", use_container_width=True):
             go_to("landing")
+
+
 
 def render_admin_portal():
     """Admin portal for managing students and placement dates"""
