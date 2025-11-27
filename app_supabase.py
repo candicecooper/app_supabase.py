@@ -1759,6 +1759,51 @@ def render_incident_log_page():
         manual_critical = st.checkbox("This incident requires a Critical Incident ABCH Form (regardless of severity)", key="manual_crit")
         submitted = st.form_submit_button("Submit Incident", type="primary")
     
+    if submitted:
+        if not location or not behaviour or not antecedent or not interventions:
+            st.error("Please complete all required fields marked with *")
+        else:
+            new_id = str(uuid.uuid4())
+            is_critical = (severity >= 3) or manual_critical
+            
+            # Generate AI hypothesis
+            hyp_ai = generate_hypothesis_ai(antecedent, behaviour, "")
+            hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
+            
+            rec = {
+                "id": new_id, 
+                "student_id": student_id, 
+                "student_name": student["name"],
+                "date": inc_date.isoformat(), 
+                "time": inc_time.strftime("%H:%M:%S"),
+                "day": inc_date.strftime("%A"), 
+                "session": get_session_from_time(inc_time),
+                "location": location, 
+                "behaviour_type": behaviour, 
+                "antecedent": antecedent,
+                "intervention": interventions,
+                "severity": severity,
+                "reported_by": st.session_state.current_user["id"],
+                "duration_minutes": duration, 
+                "description": description or "", 
+                "is_critical": is_critical,
+                "hypothesis_function": hyp_ai['function'],
+                "hypothesis_item": hyp_ai['item']
+            }
+            
+            # SAVE TO DATABASE FIRST
+            if save_incident_to_db(rec):
+                # Then add to session state
+                st.session_state.incidents.append(rec)
+                st.success("✅ Incident logged successfully and saved to database")
+                
+                if is_critical:
+                    st.session_state.current_incident_id = new_id
+                    st.session_state.show_critical_prompt = True
+                    st.session_state.last_incident_info = {"severity": severity, "manual": manual_critical}
+                    st.rerun()
+            else:
+                st.error("❌ Failed to save incident to database. Please try again.")
 
 
 def render_critical_incident_page():
@@ -2705,63 +2750,26 @@ def render_admin_portal():
                 
                 submitted = st.form_submit_button("Add Student", type="primary")
                 
-              # FIXED INCIDENT LOGGING WITH DATABASE PERSISTENCE
-# Replace the incident submission section in render_incident_log_page()
-
-# Find this section (around line 1550-1620 in your file):
-# The part that starts with: if submitted:
-
-# REPLACE WITH THIS:
-
-    if submitted:
-        if not location or not behaviour or not antecedent or not interventions:
-            st.error("Please complete all required fields marked with *")
-        else:
-            new_id = str(uuid.uuid4())
-            is_critical = (severity >= 3) or manual_critical
-            
-            # Generate AI hypothesis
-            hyp_ai = generate_hypothesis_ai(antecedent, behaviour, "")
-            hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
-            
-            rec = {
-                "id": new_id, 
-                "student_id": student_id, 
-                "student_name": student["name"],
-                "date": inc_date.isoformat(), 
-                "time": inc_time.strftime("%H:%M:%S"),
-                "day": inc_date.strftime("%A"), 
-                "session": get_session_from_time(inc_time),
-                "location": location, 
-                "behaviour_type": behaviour, 
-                "antecedent": antecedent,
-                "intervention": interventions,  # Save as list
-                "severity": severity,
-                "reported_by": st.session_state.current_user["id"],  # Save staff ID
-                "duration_minutes": duration, 
-                "description": description or "", 
-                "is_critical": is_critical,
-                "hypothesis_function": hyp_ai['function'],
-                "hypothesis_item": hyp_ai['item']
-            }
-            
-            # SAVE TO DATABASE FIRST
-            if save_incident_to_db(rec):
-                # Then add to session state
-                st.session_state.incidents.append(rec)
-                st.success("✅ Incident logged successfully and saved to database")
-                
-                if is_critical:
-                    st.session_state.current_incident_id = new_id
-                    st.session_state.show_critical_prompt = True
-                    st.session_state.last_incident_info = {"severity": severity, "manual": manual_critical}
-                    st.rerun()
-            else:
-                st.error("❌ Failed to save incident to database. Please try again.")
-
-                        st.session_state.students.append(new_student)
-                        st.success(f"✅ Added {new_name} (EDID: {new_edid}) to {PROGRAM_NAMES[new_program]}")
-                        st.rerun()
+                if submitted:
+                    if new_name and new_grade and new_program and new_edid:
+                        new_student = {
+                            "id": f"stu_{uuid.uuid4().hex[:8]}",
+                            "name": new_name,
+                            "grade": new_grade,
+                            "dob": new_dob.isoformat(),
+                            "edid": new_edid,
+                            "program": new_program,
+                            "placement_start": new_placement_start.isoformat(),
+                            "placement_end": new_placement_end.isoformat() if new_placement_end else None
+                        }
+                        
+                        # SAVE TO DATABASE FIRST
+                        if save_student_to_db(new_student):
+                            st.session_state.students.append(new_student)
+                            st.success(f"✅ Added {new_name} (EDID: {new_edid}) to {PROGRAM_NAMES[new_program]}")
+                            st.rerun()
+                        else:
+                            st.error("❌ Failed to save student to database")
                     else:
                         st.error("Please complete all required fields (Name, Grade, EDID, Program)")
         
