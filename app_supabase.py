@@ -1266,10 +1266,11 @@ def save_student_to_db(student):
             elif grade_value == 'R':
                 grade_value = 0
         
-        data = {
+       data = {
             "name": student['name'],
             "edid": student['edid'],
             "grade": int(grade_value) if str(grade_value).isdigit() else 0,
+            "year_level": int(grade_value) if str(grade_value).isdigit() else 0,  # ADD THIS LINE
             "dob": student['dob'],
             "program": student['program'],
             "placement_start": student['placement_start'],
