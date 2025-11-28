@@ -1248,8 +1248,9 @@ def load_students_from_db():
                 "placement_end": row['placement_end']
             })
         return students
-
-
+    except Exception as e:
+        st.error(f"Error loading students: {e}")
+        return []
 
 def save_student_to_db(student):
     """Save a student to Supabase database"""
