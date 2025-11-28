@@ -1252,9 +1252,26 @@ def load_students_from_db():
             else:
                 grade_str = f'Y{grade_num}'
             
+            # Handle first_name/last_name - construct name if not present
+            first_name = row.get('first_name', '')
+            last_name = row.get('last_name', '')
+            full_name = row.get('name', '')
+            
+            # If first_name/last_name not in DB, parse from name
+            if not first_name and full_name:
+                parts = full_name.split()
+                first_name = parts[0] if parts else ''
+                last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
+            
+            # If name not in DB, construct from first/last
+            if not full_name and (first_name or last_name):
+                full_name = f"{first_name} {last_name}".strip()
+            
             students.append({
                 "id": str(row['id']),
-                "name": row['name'],
+                "first_name": first_name,
+                "last_name": last_name,
+                "name": full_name,
                 "edid": row['edid'],
                 "grade": grade_str,  # Convert back to Y1, Y2, R format
                 "dob": row['dob'],
@@ -1282,6 +1299,8 @@ def save_student_to_db(student):
                 grade_value = 0
         
         data = {
+            "first_name": student.get('first_name', student['name'].split()[0] if student['name'] else ''),
+            "last_name": student.get('last_name', ' '.join(student['name'].split()[1:]) if len(student['name'].split()) > 1 else ''),
             "name": student['name'],
             "edid": student['edid'],
             "grade": int(grade_value) if str(grade_value).isdigit() else 0,
@@ -1323,9 +1342,26 @@ def load_staff_from_db():
         response = supabase.table('staff').select('*').execute()
         staff = []
         for row in response.data:
+            # Handle first_name/last_name - construct name if not present
+            first_name = row.get('first_name', '')
+            last_name = row.get('last_name', '')
+            full_name = row.get('name', '')
+            
+            # If first_name/last_name not in DB, parse from name
+            if not first_name and full_name:
+                parts = full_name.split()
+                first_name = parts[0] if parts else ''
+                last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
+            
+            # If name not in DB, construct from first/last
+            if not full_name and (first_name or last_name):
+                full_name = f"{first_name} {last_name}".strip()
+            
             staff.append({
                 "id": str(row['id']),
-                "name": row['name'],
+                "first_name": first_name,
+                "last_name": last_name,
+                "name": full_name,
                 "email": row['email'],
                 "password": row.get('password'),  # Keep for backward compatibility
                 "password_hash": row.get('password_hash', row.get('password')),  # Use password_hash if available
@@ -1348,6 +1384,8 @@ def save_staff_to_db(staff_member):
     
     try:
         data = {
+            "first_name": staff_member.get('first_name', staff_member['name'].split()[0] if staff_member['name'] else ''),
+            "last_name": staff_member.get('last_name', ' '.join(staff_member['name'].split()[1:]) if len(staff_member['name'].split()) > 1 else ''),
             "name": staff_member['name'],
             "email": staff_member['email'],
             "password": staff_member['password'],
@@ -1797,7 +1835,7 @@ def render_incident_log_page():
     with st.form("incident_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            inc_date = st.date_input("Date *", date.today(), key="inc_date")
+            inc_date = st.date_input("Date *", date.today(), key="inc_date", format="DD/MM/YYYY")
             inc_time = st.time_input("Time *", datetime.now().time(), key="inc_time")
             location = st.selectbox("Location *", [""] + LOCATIONS, key="inc_loc")
         with col2:
@@ -2790,28 +2828,31 @@ def render_admin_portal():
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
-                    new_name = st.text_input("Student Name *", placeholder="First L.")
-                    new_grade = st.selectbox("Grade *", ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"])
+                    new_first_name = st.text_input("First Name *", placeholder="John")
+                    new_last_name = st.text_input("Last Name *", placeholder="Smith")
                 
                 with col2:
+                    new_grade = st.selectbox("Grade *", ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"])
                     new_edid = st.text_input("EDID *", placeholder="ED123456")
-                    new_dob = st.date_input("Date of Birth *", value=date(2015, 1, 1))
                 
                 with col3:
+                    new_dob = st.date_input("Date of Birth *", value=date(2015, 1, 1), format="DD/MM/YYYY")
                     new_program = st.selectbox("Program *", ["JP", "PY", "SY"])
-                    new_placement_start = st.date_input("Placement Start Date *", value=date.today())
                 
                 with col4:
-                    st.write("")  # Spacer
-                    new_placement_end = st.date_input("Placement End Date (Optional)", value=None)
+                    new_placement_start = st.date_input("Placement Start Date *", value=date.today(), format="DD/MM/YYYY")
+                    new_placement_end = st.date_input("Placement End Date (Optional)", value=None, format="DD/MM/YYYY")
                 
                 submitted = st.form_submit_button("Add Student", type="primary")
                 
                 if submitted:
-                    if new_name and new_grade and new_program and new_edid:
+                    if new_first_name and new_last_name and new_grade and new_program and new_edid:
+                        full_name = f"{new_first_name} {new_last_name}"
                         new_student = {
                             "id": f"stu_{uuid.uuid4().hex[:8]}",
-                            "name": new_name,
+                            "first_name": new_first_name.strip(),
+                            "last_name": new_last_name.strip(),
+                            "name": full_name.strip(),
                             "grade": new_grade,
                             "dob": new_dob.isoformat(),
                             "edid": new_edid,
@@ -2823,12 +2864,12 @@ def render_admin_portal():
                         # SAVE TO DATABASE FIRST
                         if save_student_to_db(new_student):
                             st.session_state.students.append(new_student)
-                            st.success(f"✅ Added {new_name} (EDID: {new_edid}) to {PROGRAM_NAMES[new_program]}")
+                            st.success(f"✅ Added {full_name} (EDID: {new_edid}) to {PROGRAM_NAMES[new_program]}")
                             st.rerun()
                         else:
                             st.error("❌ Failed to save student to database")
                     else:
-                        st.error("Please complete all required fields (Name, Grade, EDID, Program)")
+                        st.error("Please complete all required fields (First Name, Last Name, Grade, EDID, Program)")
         
         st.markdown("---")
         
@@ -2889,23 +2930,42 @@ def render_admin_portal():
                             edit_col1, edit_col2 = st.columns(2)
                             
                             with edit_col1:
+                                edit_first_name = st.text_input("First Name", 
+                                                               value=student.get('first_name', student['name'].split()[0] if student['name'] else ''),
+                                                               key=f"edit_first_{student['id']}")
+                                edit_last_name = st.text_input("Last Name",
+                                                              value=student.get('last_name', ' '.join(student['name'].split()[1:]) if len(student['name'].split()) > 1 else ''),
+                                                              key=f"edit_last_{student['id']}")
                                 # Use existing date or default to today
                                 default_start = datetime.fromisoformat(student['placement_start']).date() if student.get('placement_start') else date.today()
                                 edit_start = st.date_input("Placement Start", 
                                                           value=default_start,
-                                                          key=f"edit_start_{student['id']}")
+                                                          key=f"edit_start_{student['id']}",
+                                                          format="DD/MM/YYYY")
                             
                             with edit_col2:
+                                edit_edid = st.text_input("EDID", value=student.get('edid', ''), key=f"edit_edid_{student['id']}")
+                                edit_grade = st.selectbox("Grade", 
+                                                         ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"],
+                                                         index=["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"].index(student['grade']) if student['grade'] in ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"] else 0,
+                                                         key=f"edit_grade_{student['id']}")
                                 current_end = datetime.fromisoformat(student['placement_end']).date() if student.get('placement_end') else None
                                 edit_end = st.date_input("Placement End (None = Ongoing)",
                                                         value=current_end,
-                                                        key=f"edit_end_{student['id']}")
+                                                        key=f"edit_end_{student['id']}",
+                                                        format="DD/MM/YYYY")
                             
                             col_save, col_cancel = st.columns(2)
                             with col_save:
                                 if st.form_submit_button("Save Changes", type="primary"):
+                                    student['first_name'] = edit_first_name.strip()
+                                    student['last_name'] = edit_last_name.strip()
+                                    student['name'] = f"{edit_first_name} {edit_last_name}".strip()
+                                    student['edid'] = edit_edid
+                                    student['grade'] = edit_grade
                                     student['placement_start'] = edit_start.isoformat()
                                     student['placement_end'] = edit_end.isoformat() if edit_end else None
+                                    save_student_to_db(student)
                                     st.session_state.editing_student = None
                                     st.success("✅ Updated")
                                     st.rerun()
@@ -2954,7 +3014,8 @@ def render_admin_portal():
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    staff_name = st.text_input("Full Name *", placeholder="Jane Smith")
+                    staff_first_name = st.text_input("First Name *", placeholder="Jane")
+                    staff_last_name = st.text_input("Last Name *", placeholder="Smith")
                     staff_email = st.text_input("Email Address *", placeholder="jane.smith@school.edu.au", 
                                                help="Will be used as username and for critical incident notifications")
                     staff_password = st.text_input("Initial Password *", type="password", value="demo123")
@@ -2971,14 +3032,17 @@ def render_admin_portal():
                 submit_staff = st.form_submit_button("Add Staff Member", type="primary")
                 
                 if submit_staff:
-                    if staff_name and staff_email and staff_password and staff_role:
+                    if staff_first_name and staff_last_name and staff_email and staff_password and staff_role:
+                        staff_full_name = f"{staff_first_name} {staff_last_name}"
                         # Check if email already exists
                         if any(s.get("email", "").lower() == staff_email.lower() for s in st.session_state.staff):
                             st.error(f"❌ Email {staff_email} already exists")
                         else:
                             new_staff = {
                                 "id": f"staff_{uuid.uuid4().hex[:8]}",
-                                "name": staff_name,
+                                "first_name": staff_first_name.strip(),
+                                "last_name": staff_last_name.strip(),
+                                "name": staff_full_name.strip(),
                                 "email": staff_email.lower().strip(),
                                 "password": staff_password,
                                 "role": staff_role,
@@ -2991,10 +3055,12 @@ def render_admin_portal():
                             # Save to database first
                             if save_staff_to_db(new_staff):
                                 st.session_state.staff.append(new_staff)
-                                st.success(f"✅ Added {staff_name} ({staff_email}) to database")
+                                st.success(f"✅ Added {staff_full_name} ({staff_email}) to database")
                                 st.rerun()
                             else:
                                 st.error("❌ Failed to save staff member to database")
+                    else:
+                        st.error("Please complete all required fields (First Name, Last Name, Email, Password, Role)")
     
         st.markdown("---")
         
@@ -3048,7 +3114,8 @@ def render_admin_portal():
                                     edit_col1, edit_col2 = st.columns(2)
                                     
                                     with edit_col1:
-                                        edit_name = st.text_input("Name", value=staff['name'], key=f"edit_staff_name_{staff['id']}")
+                                        edit_first_name = st.text_input("First Name", value=staff.get('first_name', staff['name'].split()[0] if staff['name'] else ''), key=f"edit_staff_first_{staff['id']}")
+                                        edit_last_name = st.text_input("Last Name", value=staff.get('last_name', ' '.join(staff['name'].split()[1:]) if len(staff['name'].split()) > 1 else ''), key=f"edit_staff_last_{staff['id']}")
                                         edit_email = st.text_input("Email", value=staff['email'], key=f"edit_staff_email_{staff['id']}")
                                         edit_phone = st.text_input("Phone", value=staff.get('phone', ''), key=f"edit_staff_phone_{staff['id']}")
                                     
@@ -3071,13 +3138,16 @@ def render_admin_portal():
                                     col_save, col_cancel, col_delete = st.columns([1, 1, 1])
                                     with col_save:
                                         if st.form_submit_button("💾 Save Changes", type="primary"):
-                                            staff['name'] = edit_name
+                                            staff['first_name'] = edit_first_name.strip()
+                                            staff['last_name'] = edit_last_name.strip()
+                                            staff['name'] = f"{edit_first_name} {edit_last_name}".strip()
                                             staff['email'] = edit_email.lower().strip()
                                             staff['phone'] = edit_phone if edit_phone else None
                                             staff['role'] = edit_role
                                             staff['program'] = edit_program if edit_program != "All Programs" else None
                                             staff['receive_critical_emails'] = edit_receive_emails
                                             staff['notes'] = edit_notes if edit_notes else None
+                                            save_staff_to_db(staff)
                                             st.session_state.editing_staff = None
                                             st.success("✅ Updated")
                                             st.rerun()
