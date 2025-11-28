@@ -2957,7 +2957,7 @@ def render_admin_portal():
                                 st.rerun()
                             else:
                                 st.error("❌ Failed to save staff member to database")
-        
+    
         st.markdown("---")
         
         # EXISTING STAFF
