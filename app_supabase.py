@@ -1249,7 +1249,7 @@ def load_students_from_db():
             })
         return students
 
-    def save_student_to_db(student):
+  def save_student_to_db(student):
     """Save a student to Supabase database"""
     if not supabase:
         return False
@@ -1284,40 +1284,6 @@ def load_students_from_db():
         
         return True
         
-    except Exception as e:
-        st.error(f"Error saving student: {e}")
-        return False
-    except Exception as e:
-        st.error(f"Error loading students: {e}")
-        return []
-    try:
-        # Convert grade to just the number if it starts with Y
-        grade_value = student['grade']
-        if isinstance(grade_value, str):
-            if grade_value.startswith('Y'):
-                # Extract number from "Y2" -> 2
-                grade_value = grade_value[1:]
-            elif grade_value == 'R':
-                # Reception = 0
-                grade_value = 0
-        
-        data = {
-            "name": student['name'],
-            "edid": student['edid'],
-            "grade": int(grade_value) if str(grade_value).isdigit() else 0,  # Convert to integer
-            "dob": student['dob'],
-            "program": student['program'],
-            "placement_start": student['placement_start'],
-            "placement_end": student.get('placement_end')
-        }
-        
-        if 'id' in student and student['id'].startswith('stu_'):
-            # New student (generated ID from app)
-            supabase.table('students').insert(data).execute()
-        else:
-            # Existing student (UUID from database)
-            supabase.table('students').update(data).eq('id', student['id']).execute()
-        return True
     except Exception as e:
         st.error(f"Error saving student: {e}")
         return False
