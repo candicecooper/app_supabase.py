@@ -336,7 +336,8 @@ def show_severity_guide():
     st.markdown("""
     <div style='background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; 
                 box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;'>
-        
+    </div>
+    """, unsafe_allow_html=True) 
         <div style='text-align: center; margin-bottom: 1.5rem;'>
             <h2 style='color: #1a1a1a; font-weight: 700; font-size: 1.8rem; margin: 0;'>
                 Behaviour Severity Continuum
