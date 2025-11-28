@@ -1249,7 +1249,7 @@ def load_students_from_db():
             })
         return students
 
-  def save_student_to_db(student):
+def save_student_to_db(student):
     """Save a student to Supabase database"""
     if not supabase:
         return False
