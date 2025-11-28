@@ -333,7 +333,9 @@ def format_hypothesis(hyp):
 
 def show_severity_guide():
     """Enhanced Behaviour Severity Continuum matching uploaded image"""
-    st.markdown("""<div style='background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; 
+    import streamlit.components.v1 as components
+    
+    html_content = """<div style='background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; 
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;'>
     
     <div style='text-align: center; margin-bottom: 1.5rem;'>
@@ -498,7 +500,8 @@ def show_severity_guide():
         </div>
     </div>
 </div>
-""", unsafe_allow_html=True)
+"""
+    components.html(html_content, height=700, scrolling=True)
     
 def send_critical_incident_email(incident_data, student, staff_email, leader_email, admin_email):
     """Send email notification to all parties"""
