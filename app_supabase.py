@@ -183,6 +183,17 @@ def format_time_12hr(time_str):
     except:
         return time_str
 
+def format_date_dmy(date_str):
+    """Convert date to DD/MM/YYYY format"""
+    try:
+        if isinstance(date_str, str):
+            dt = datetime.strptime(date_str, "%Y-%m-%d")
+        else:
+            dt = date_str
+        return dt.strftime("%d/%m/%Y")
+    except:
+        return date_str
+
 def generate_hypothesis(antecedent, behaviour, consequence):
     """Auto-generate hypothesis based on ABC data"""
     hypotheses = []
@@ -336,7 +347,8 @@ def show_severity_guide():
     import streamlit.components.v1 as components
     
     html_content = """<div style='background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;'>
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;
+            font-family: "Source Sans Pro", sans-serif;'>
     
     <div style='text-align: center; margin-bottom: 1.5rem;'>
         <h2 style='color: #1a1a1a; font-weight: 700; font-size: 1.8rem; margin: 0;'>
@@ -1761,7 +1773,27 @@ def render_incident_log_page():
         st.markdown("---")
         st.stop()
     
-    # INCIDENT FORM
+    # INCIDENT FORM - Split to show hypothesis before severity
+    st.markdown("### Log New Incident")
+    
+    # First section: Capture antecedent and behaviour for hypothesis generation
+    col1, col2 = st.columns(2)
+    with col1:
+        behaviour_select = st.selectbox("Behaviour Type *", [""] + BEHAVIOUR_TYPES, key="inc_beh_select")
+    with col2:
+        antecedent_select = st.selectbox("Antecedent/Trigger *", [""] + ANTECEDENTS, key="inc_ant_select")
+    
+    # Display hypothesis if both are selected
+    if behaviour_select and antecedent_select:
+        hyp_ai = generate_hypothesis_ai(antecedent_select, behaviour_select, "")
+        hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
+        st.info(f"🧠 **Suggested Hypothesis:** {hypothesis_text}")
+        # Store for form submission
+        st.session_state.current_hypothesis = hyp_ai
+    else:
+        st.session_state.current_hypothesis = None
+    
+    # Main form with remaining fields
     with st.form("incident_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
@@ -1769,8 +1801,9 @@ def render_incident_log_page():
             inc_time = st.time_input("Time *", datetime.now().time(), key="inc_time")
             location = st.selectbox("Location *", [""] + LOCATIONS, key="inc_loc")
         with col2:
-            behaviour = st.selectbox("Behaviour Type *", [""] + BEHAVIOUR_TYPES, key="inc_beh")
-            antecedent = st.selectbox("Antecedent/Trigger *", [""] + ANTECEDENTS, key="inc_ant")
+            # Hidden fields to pass the pre-selected values
+            st.markdown(f"**Behaviour Type:** {behaviour_select if behaviour_select else 'Not selected'}")
+            st.markdown(f"**Antecedent/Trigger:** {antecedent_select if antecedent_select else 'Not selected'}")
             # MULTIPLE INTERVENTIONS
             interventions = st.multiselect("Interventions Used *", INTERVENTIONS, key="inc_ints")
         
@@ -1781,14 +1814,16 @@ def render_incident_log_page():
         submitted = st.form_submit_button("Submit Incident", type="primary")
     
     if submitted:
+        behaviour = behaviour_select
+        antecedent = antecedent_select
         if not location or not behaviour or not antecedent or not interventions:
             st.error("Please complete all required fields marked with *")
         else:
             new_id = str(uuid.uuid4())
             is_critical = (severity >= 3) or manual_critical
             
-            # Generate AI hypothesis
-            hyp_ai = generate_hypothesis_ai(antecedent, behaviour, "")
+            # Use pre-generated hypothesis or generate new one
+            hyp_ai = st.session_state.get('current_hypothesis') or generate_hypothesis_ai(antecedent, behaviour, "")
             hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
             
             rec = {
@@ -1855,14 +1890,15 @@ def render_critical_incident_page():
             st.markdown(f"**Student:** {student['name']}")
             st.markdown(f"**Grade:** {student['grade']}")
         with col2:
-            st.markdown(f"**Date:** {quick_inc['date']}")
+            st.markdown(f"**Date:** {format_date_dmy(quick_inc['date'])}")
             st.markdown(f"**Time:** {format_time_12hr(quick_inc['time'])}")
         with col3:
             st.markdown(f"**Location:** {quick_inc['location']}")
             st.markdown(f"**Session:** {quick_inc['session']}")
         with col4:
             st.markdown(f"**Severity:** {quick_inc['severity']}")
-        st.markdown(f"**Hypothesis:** {quick_inc.get('hypothesis', 'N/A')}")
+        hypothesis_display = f"{quick_inc.get('hypothesis_function', '')} {quick_inc.get('hypothesis_item', '')}".strip() or 'N/A'
+        st.markdown(f"**Hypothesis:** {hypothesis_display}")
     
     st.markdown("---")
     st.markdown("### ABCH Chronology")
