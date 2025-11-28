@@ -489,7 +489,7 @@ def show_severity_guide():
         </div>
         
     </div>
-    
+
     <div style='margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #f59e0b;'>
         <div style='color: #92400e; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem;'>
             WARNING: Critical Incident Documentation Required
