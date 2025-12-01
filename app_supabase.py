@@ -3953,7 +3953,7 @@ def render_admin_portal():
                                         edit_role = st.selectbox("Role", ["TSS", "Teacher", "Leader", "ADM"],
                                                                 index=["TSS", "Teacher", "Leader", "ADM"].index(staff['role']),
                                                                 key=f"edit_staff_role_{staff['id']}")
-                                       current_program = staff.get('program') if staff.get('program') else "All Programs"
+                                     current_program = staff.get('program') if staff.get('program') else "All Programs"
                                         program_list = ["JP", "PY", "SY", "All Programs"]
                                     try:
                                         program_index = program_list.index(current_program)
