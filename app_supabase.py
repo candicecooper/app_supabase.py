@@ -3936,7 +3936,13 @@ def render_admin_portal():
                             if st.button("✏️", key=f"edit_staff_{staff['id']}", help="Edit staff"):
                                 st.session_state.editing_staff = staff['id']
                                 st.rerun()
-                        
+                        # ==================================================================
+# COMPLETE STAFF EDITING SECTION - REPLACE LINES ~3940-3980
+# ==================================================================
+# This goes INSIDE the staff management loop in render_admin_portal()
+# Find where it says "# EDIT STAFF" and replace that entire section
+# ==================================================================
+
                         # EDIT STAFF
                         if st.session_state.get("editing_staff") == staff['id']:
                             with st.expander("✏️ Edit Staff Details", expanded=True):
@@ -3944,8 +3950,7 @@ def render_admin_portal():
                                     edit_col1, edit_col2 = st.columns(2)
                                     
                                     with edit_col1:
-                                        edit_first_name = st.text_input("First Name", value=staff.get('first_name', staff['name'].split()[0] if staff['name'] else ''), key=f"edit_staff_first_{staff['id']}")
-                                        edit_last_name = st.text_input("Last Name", value=staff.get('last_name', ' '.join(staff['name'].split()[1:]) if len(staff['name'].split()) > 1 else ''), key=f"edit_staff_last_{staff['id']}")
+                                        edit_name = st.text_input("Name", value=staff['name'], key=f"edit_staff_name_{staff['id']}")
                                         edit_email = st.text_input("Email", value=staff['email'], key=f"edit_staff_email_{staff['id']}")
                                         edit_phone = st.text_input("Phone", value=staff.get('phone', ''), key=f"edit_staff_phone_{staff['id']}")
                                     
@@ -3953,40 +3958,44 @@ def render_admin_portal():
                                         edit_role = st.selectbox("Role", ["TSS", "Teacher", "Leader", "ADM"],
                                                                 index=["TSS", "Teacher", "Leader", "ADM"].index(staff['role']),
                                                                 key=f"edit_staff_role_{staff['id']}")
-                                     current_program = staff.get('program') if staff.get('program') else "All Programs"
+                                        
+                                        # Fixed program selection - no more error!
+                                        current_program = staff.get('program', 'All Programs')
+                                        if current_program is None:
+                                            current_program = "All Programs"
                                         program_list = ["JP", "PY", "SY", "All Programs"]
-                                    try:
-                                        program_index = program_list.index(current_program)
-                                    except ValueError:
-                                       program_index = 3  # Default to "All Programs"
-                                     current_program = staff.get('program') if staff.get('program') else "All Programs"
-                                    program_list = ["JP", "PY", "SY", "All Programs"]
-                                    try:
-                                        program_index = program_list.index(current_program)
-                                    except ValueError:
-                                        program_index = 3
+                                        try:
+                                            program_index = program_list.index(current_program)
+                                        except ValueError:
+                                            program_index = 3
+                                        
+                                        edit_program = st.selectbox("Program", program_list,
+                                                                   index=program_index,
+                                                                   key=f"edit_staff_program_{staff['id']}")
+                                        edit_receive_emails = st.checkbox("Receive critical incident emails",
+                                                                         value=staff.get('receive_critical_emails', True),
+                                                                         key=f"edit_staff_emails_{staff['id']}")
                                     
-                                    edit_program = st.selectbox("Program", program_list,
-                                                               index=program_index,
-                                                               key=f"edit_staff_program_{staff['id']}")                                    
                                     edit_notes = st.text_area("Notes", value=staff.get('notes', ''), key=f"edit_staff_notes_{staff['id']}")
                                     
                                     col_save, col_cancel, col_delete = st.columns([1, 1, 1])
                                     with col_save:
                                         if st.form_submit_button("💾 Save Changes", type="primary"):
-                                            staff['first_name'] = edit_first_name.strip()
-                                            staff['last_name'] = edit_last_name.strip()
-                                            staff['name'] = f"{edit_first_name} {edit_last_name}".strip()
+                                            staff['name'] = edit_name
                                             staff['email'] = edit_email.lower().strip()
                                             staff['phone'] = edit_phone if edit_phone else None
                                             staff['role'] = edit_role
                                             staff['program'] = edit_program if edit_program != "All Programs" else None
                                             staff['receive_critical_emails'] = edit_receive_emails
                                             staff['notes'] = edit_notes if edit_notes else None
-                                            save_staff_to_db(staff)
-                                            st.session_state.editing_staff = None
-                                            st.success("✅ Updated")
-                                            st.rerun()
+                                            
+                                            # Save to database
+                                            if save_staff_to_db(staff):
+                                                st.session_state.editing_staff = None
+                                                st.success("✅ Staff member updated")
+                                                st.rerun()
+                                            else:
+                                                st.error("❌ Failed to update staff member")
                                     
                                     with col_cancel:
                                         if st.form_submit_button("❌ Cancel"):
@@ -3996,10 +4005,13 @@ def render_admin_portal():
                                     with col_delete:
                                         if st.form_submit_button("🗑️ Delete", help="Remove this staff member"):
                                             if staff['role'] != 'ADM' or len([s for s in st.session_state.staff if s.get('role') == 'ADM']) > 1:
-                                                st.session_state.staff.remove(staff)
-                                                st.session_state.editing_staff = None
-                                                st.success("✅ Staff member removed")
-                                                st.rerun()
+                                                if delete_staff_from_db(staff['id']):
+                                                    st.session_state.staff.remove(staff)
+                                                    st.session_state.editing_staff = None
+                                                    st.success("✅ Staff member removed")
+                                                    st.rerun()
+                                                else:
+                                                    st.error("❌ Failed to delete staff member")
                                             else:
                                                 st.error("❌ Cannot delete the last administrator")
         
