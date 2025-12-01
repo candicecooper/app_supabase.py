@@ -3959,14 +3959,16 @@ def render_admin_portal():
                                         program_index = program_list.index(current_program)
                                     except ValueError:
                                        program_index = 3  # Default to "All Programs"
-
+                                     current_program = staff.get('program') if staff.get('program') else "All Programs"
+                                    program_list = ["JP", "PY", "SY", "All Programs"]
+                                    try:
+                                        program_index = program_list.index(current_program)
+                                    except ValueError:
+                                        program_index = 3
+                                    
                                     edit_program = st.selectbox("Program", program_list,
                                                                index=program_index,
-                                                               key=f"edit_staff_program_{staff['id']}")
-                                        edit_receive_emails = st.checkbox("Receive critical incident emails",
-                                                                         value=staff.get('receive_critical_emails', True),
-                                                                         key=f"edit_staff_emails_{staff['id']}")
-                                    
+                                                               key=f"edit_staff_program_{staff['id']}")                                    
                                     edit_notes = st.text_area("Notes", value=staff.get('notes', ''), key=f"edit_staff_notes_{staff['id']}")
                                     
                                     col_save, col_cancel, col_delete = st.columns([1, 1, 1])
