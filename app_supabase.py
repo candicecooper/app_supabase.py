@@ -15,7 +15,7 @@ try:
     SUPABASE_AVAILABLE = True
 except ImportError:
     SUPABASE_AVAILABLE = False
-    st.warning("Supabase not installed. Run: pip install supabase")
+    st.warning("⚠️ Supabase not installed. Run: pip install supabase")
 
 # Initialize Supabase client
 @st.cache_resource
@@ -172,213 +172,6 @@ VALID_PAGES = ["login", "landing", "program_students", "incident_log", "critical
 HYPOTHESIS_FUNCTIONS = ["To get", "To avoid"]
 HYPOTHESIS_ITEMS = ["Tangible", "Activity", "Sensory", "Attention"]
 
-# AUSTRALIAN CURRICULUM GENERAL CAPABILITIES
-# These capabilities are developed across all learning areas
-AC_CAPABILITIES = {
-    "PSC": {
-        "name": "Personal and Social Capability",
-        "elements": {
-            "Self-awareness": ["Recognise emotions", "Recognise personal qualities and achievements", "Understand themselves as learners", "Develop reflective practice"],
-            "Self-management": ["Express emotions appropriately", "Develop self-discipline and set goals", "Work independently and show initiative", "Become confident, resilient and adaptable"],
-            "Social awareness": ["Appreciate diverse perspectives", "Contribute to civil society", "Understand relationships"],
-            "Social management": ["Communicate effectively", "Work collaboratively", "Make decisions", "Negotiate and resolve conflict", "Develop leadership skills"]
-        },
-        "color": "#4A90A4"
-    },
-    "CCT": {
-        "name": "Critical and Creative Thinking",
-        "elements": {
-            "Inquiring": ["Identify, explore and organise information and ideas", "Pose questions"],
-            "Generating": ["Generate ideas, possibilities and actions", "Consider alternatives"],
-            "Analysing": ["Analyse, synthesise and evaluate reasoning and procedures"],
-            "Reflecting": ["Reflect on thinking and processes", "Apply logic and reasoning"]
-        },
-        "color": "#6BB9A0"
-    },
-    "EU": {
-        "name": "Ethical Understanding",
-        "elements": {
-            "Understanding": ["Recognise ethical concepts", "Explore ethical issues"],
-            "Reasoning": ["Reason and make ethical decisions"],
-            "Acting": ["Consider consequences", "Reflect on ethical action"]
-        },
-        "color": "#E8B960"
-    },
-    "ICU": {
-        "name": "Intercultural Understanding",
-        "elements": {
-            "Recognising": ["Recognise culture and develop respect"],
-            "Interacting": ["Interact and empathise with others"],
-            "Reflecting": ["Reflect on intercultural experiences and take responsibility"]
-        },
-        "color": "#D4A574"
-    }
-}
-
-# Behaviour to AC Capability Mapping
-BEHAVIOUR_AC_MAPPING = {
-    "Verbal Refusal": {
-        "primary": "PSC",
-        "elements": ["Self-management", "Social management"],
-        "skills_to_develop": [
-            "Express emotions appropriately",
-            "Communicate effectively",
-            "Negotiate and resolve conflict"
-        ],
-        "ac_descriptors": [
-            "Persist in the face of difficulty",
-            "Express feelings and opinions appropriately",
-            "Work toward shared goals"
-        ]
-    },
-    "Elopement": {
-        "primary": "PSC",
-        "elements": ["Self-awareness", "Self-management"],
-        "skills_to_develop": [
-            "Recognise emotions",
-            "Develop self-discipline and set goals",
-            "Become confident, resilient and adaptable"
-        ],
-        "ac_descriptors": [
-            "Identify and express a range of emotions",
-            "Identify personal strengths and challenges",
-            "Persist when faced with challenges"
-        ]
-    },
-    "Property Destruction": {
-        "primary": "PSC",
-        "elements": ["Self-management", "Social awareness"],
-        "skills_to_develop": [
-            "Express emotions appropriately",
-            "Understand relationships",
-            "Appreciate diverse perspectives"
-        ],
-        "ac_descriptors": [
-            "Control impulses and reactions",
-            "Consider points of view of others",
-            "Identify the effects of actions on others"
-        ]
-    },
-    "Aggression (Peer)": {
-        "primary": "PSC",
-        "elements": ["Social management", "Social awareness"],
-        "skills_to_develop": [
-            "Negotiate and resolve conflict",
-            "Communicate effectively",
-            "Understand relationships"
-        ],
-        "ac_descriptors": [
-            "Use problem-solving skills to resolve conflict",
-            "Consider points of view of others",
-            "Develop strategies to manage conflict"
-        ]
-    },
-    "Aggression (Adult)": {
-        "primary": "PSC",
-        "elements": ["Self-management", "Social management"],
-        "skills_to_develop": [
-            "Express emotions appropriately",
-            "Communicate effectively",
-            "Develop self-discipline and set goals"
-        ],
-        "ac_descriptors": [
-            "Express strong emotions appropriately",
-            "Develop positive relationships with adults",
-            "Respond appropriately to guidance"
-        ]
-    },
-    "Self-Harm": {
-        "primary": "PSC",
-        "elements": ["Self-awareness", "Self-management"],
-        "skills_to_develop": [
-            "Recognise emotions",
-            "Become confident, resilient and adaptable",
-            "Develop reflective practice"
-        ],
-        "ac_descriptors": [
-            "Identify and express emotions in safe ways",
-            "Develop coping strategies",
-            "Seek help when needed"
-        ]
-    },
-    "Verbal Aggression": {
-        "primary": "PSC",
-        "elements": ["Self-management", "Social management"],
-        "skills_to_develop": [
-            "Express emotions appropriately",
-            "Communicate effectively",
-            "Negotiate and resolve conflict"
-        ],
-        "ac_descriptors": [
-            "Use respectful language",
-            "Express disagreement appropriately",
-            "Consider impact of words on others"
-        ]
-    },
-    "Other": {
-        "primary": "PSC",
-        "elements": ["Self-awareness", "Self-management"],
-        "skills_to_develop": [
-            "Recognise emotions",
-            "Express emotions appropriately",
-            "Develop self-discipline and set goals"
-        ],
-        "ac_descriptors": [
-            "Identify triggers and patterns",
-            "Develop self-regulation strategies",
-            "Set and work toward personal goals"
-        ]
-    }
-}
-
-# Antecedent to AC Skills Connection
-ANTECEDENT_AC_SKILLS = {
-    "Peer": {
-        "capability": "PSC",
-        "focus_elements": ["Social awareness", "Social management"],
-        "teaching_priority": ["Perspective-taking", "Conflict resolution", "Emotional regulation in social contexts"]
-    },
-    "Transition": {
-        "capability": "PSC", 
-        "focus_elements": ["Self-management", "Self-awareness"],
-        "teaching_priority": ["Flexibility", "Coping with change", "Self-regulation"]
-    },
-    "Instructions": {
-        "capability": "PSC",
-        "focus_elements": ["Self-management", "Social management"],
-        "teaching_priority": ["Following routines", "Responding to guidance", "Task completion"]
-    },
-    "Engagement": {
-        "capability": "CCT",
-        "focus_elements": ["Reflecting", "Generating"],
-        "teaching_priority": ["Persistence", "Problem-solving", "Growth mindset"]
-    },
-    "Sensory": {
-        "capability": "PSC",
-        "focus_elements": ["Self-awareness", "Self-management"],
-        "teaching_priority": ["Body awareness", "Self-advocacy", "Regulation strategies"]
-    },
-    "Other": {
-        "capability": "PSC",
-        "focus_elements": ["Self-awareness", "Self-management"],
-        "teaching_priority": ["Emotional literacy", "Help-seeking", "Coping strategies"]
-    }
-}
-
-# CONSISTENT COLOUR SCHEME FOR GRAPHS
-CHART_COLORS = {
-    "primary": "#008080",      # Teal
-    "secondary": "#228B22",    # Forest Green  
-    "accent": "#4682B4",       # Steel Blue
-    "warning": "#DC3545",      # Red
-    "success": "#28A745",      # Green
-    "neutral": "#6C757D",      # Gray
-    "light": "#E8F4F8",        # Light teal
-    "regular_incident": "#4A90A4",   # Teal-blue for regular incidents
-    "critical_incident": "#DC3545",  # Red for critical incidents
-    "gradient": ["#008080", "#20B2AA", "#48D1CC", "#7FFFD4"]  # Teal gradient
-}
-
 def format_time_12hr(time_str):
     """Convert 24hr time string to 12hr format"""
     try:
@@ -389,17 +182,6 @@ def format_time_12hr(time_str):
         return dt.strftime("%I:%M %p")
     except:
         return time_str
-
-def format_date_dmy(date_str):
-    """Convert date to DD/MM/YYYY format"""
-    try:
-        if isinstance(date_str, str):
-            dt = datetime.strptime(date_str, "%Y-%m-%d")
-        else:
-            dt = date_str
-        return dt.strftime("%d/%m/%Y")
-    except:
-        return date_str
 
 def generate_hypothesis(antecedent, behaviour, consequence):
     """Auto-generate hypothesis based on ABC data"""
@@ -549,321 +331,175 @@ def format_hypothesis(hyp):
     else:
         return "Unknown"
 
-def get_ac_capability_for_behaviour(behaviour_type):
-    """Get Australian Curriculum capability information for a behaviour type"""
-    if behaviour_type in BEHAVIOUR_AC_MAPPING:
-        mapping = BEHAVIOUR_AC_MAPPING[behaviour_type]
-        capability_code = mapping["primary"]
-        capability_info = AC_CAPABILITIES.get(capability_code, {})
-        return {
-            "code": capability_code,
-            "name": capability_info.get("name", ""),
-            "elements": mapping["elements"],
-            "skills_to_develop": mapping["skills_to_develop"],
-            "ac_descriptors": mapping["ac_descriptors"],
-            "color": capability_info.get("color", "#4A90A4")
-        }
-    return None
-
-def get_ac_skills_for_antecedent(antecedent):
-    """Get AC skill focus based on antecedent category"""
-    # Determine antecedent category from the full antecedent string
-    ant_lower = antecedent.lower() if antecedent else ""
-    
-    category = "Other"
-    if "peer" in ant_lower:
-        category = "Peer"
-    elif "transition" in ant_lower:
-        category = "Transition"
-    elif "instruction" in ant_lower:
-        category = "Instructions"
-    elif "engagement" in ant_lower or "demand" in ant_lower or "task" in ant_lower:
-        category = "Engagement"
-    elif "sensory" in ant_lower:
-        category = "Sensory"
-    
-    if category in ANTECEDENT_AC_SKILLS:
-        skills = ANTECEDENT_AC_SKILLS[category]
-        capability_info = AC_CAPABILITIES.get(skills["capability"], {})
-        return {
-            "category": category,
-            "capability_code": skills["capability"],
-            "capability_name": capability_info.get("name", ""),
-            "focus_elements": skills["focus_elements"],
-            "teaching_priority": skills["teaching_priority"],
-            "color": capability_info.get("color", "#4A90A4")
-        }
-    return None
-
-def generate_ac_learning_goals(behaviour_type, antecedent, grade):
-    """Generate AC-aligned learning goals based on behaviour and grade level"""
-    beh_mapping = BEHAVIOUR_AC_MAPPING.get(behaviour_type, BEHAVIOUR_AC_MAPPING["Other"])
-    
-    # Adjust complexity based on grade
-    try:
-        grade_num = int(grade.replace("Y", "").replace("R", "0"))
-    except:
-        grade_num = 3  # Default to middle primary
-    
-    # Generate grade-appropriate goals
-    if grade_num <= 2:  # Foundation to Year 2
-        complexity = "foundational"
-        verbs = ["identify", "recognise", "begin to use", "with support"]
-    elif grade_num <= 4:  # Years 3-4
-        complexity = "developing"
-        verbs = ["describe", "demonstrate", "use", "with guidance"]
-    elif grade_num <= 6:  # Years 5-6
-        complexity = "consolidating"
-        verbs = ["explain", "apply", "independently use", "evaluate"]
-    else:  # Years 7+
-        complexity = "extending"
-        verbs = ["analyse", "critically reflect", "independently demonstrate", "adapt"]
-    
-    goals = []
-    for i, skill in enumerate(beh_mapping["skills_to_develop"][:3]):
-        verb = verbs[i % len(verbs)]
-        goals.append({
-            "skill": skill,
-            "goal": f"Student will {verb} {skill.lower()}",
-            "ac_descriptor": beh_mapping["ac_descriptors"][i] if i < len(beh_mapping["ac_descriptors"]) else "",
-            "complexity": complexity
-        })
-    
-    return goals
-
-def get_intervention_ac_alignment(interventions):
-    """Map interventions to AC capability development"""
-    intervention_ac_map = {
-        "CPI Supportive stance": {
-            "capability": "PSC",
-            "element": "Relationship/Self-management",
-            "supports": "Co-regulation and safety"
-        },
-        "Offered break": {
-            "capability": "PSC",
-            "element": "Self-management",
-            "supports": "Self-regulation and body awareness"
-        },
-        "Reduced demand": {
-            "capability": "PSC",
-            "element": "Self-management",
-            "supports": "Building stamina gradually"
-        },
-        "Provided choices": {
-            "capability": "PSC",
-            "element": "Self-management/Social management",
-            "supports": "Agency and decision-making"
-        },
-        "Removed audience": {
-            "capability": "PSC",
-            "element": "Social awareness",
-            "supports": "Dignity and self-awareness"
-        },
-        "Visual supports": {
-            "capability": "CCT",
-            "element": "Analysing/Reflecting",
-            "supports": "Processing and understanding expectations"
-        },
-        "Co-regulation": {
-            "capability": "PSC",
-            "element": "Self-management/Social awareness",
-            "supports": "Emotional regulation through relationship"
-        },
-        "Prompted coping skill": {
-            "capability": "PSC",
-            "element": "Self-management",
-            "supports": "Building independent regulation"
-        },
-        "Redirection": {
-            "capability": "CCT",
-            "element": "Generating/Analysing",
-            "supports": "Flexible thinking and alternatives"
-        }
-    }
-    
-    alignments = []
-    if isinstance(interventions, list):
-        for intervention in interventions:
-            if intervention in intervention_ac_map:
-                alignments.append({
-                    "intervention": intervention,
-                    **intervention_ac_map[intervention]
-                })
-    return alignments
-
 def show_severity_guide():
     """Enhanced Behaviour Severity Continuum matching uploaded image"""
-    import streamlit.components.v1 as components
-    
-    html_content = """<div style='background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; 
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;
-            font-family: "Source Sans Pro", sans-serif;'>
-    
-    <div style='text-align: center; margin-bottom: 1.5rem;'>
-        <h2 style='color: #1a1a1a; font-weight: 700; font-size: 1.8rem; margin: 0;'>
-            Behaviour Severity Continuum
-        </h2>
-    </div>
-    
-    <div style='display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;'>
+    st.markdown("""
+    <div style='background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; 
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;'>
         
-        <div style='background: #81b29a; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
-            <div style='text-align: center; margin-bottom: 1rem;'>
-                <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 1</div>
-                <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
-                    Low Level /<br>Engaged
-                </div>
-            </div>
-            <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
-                <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
-                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                    <li>Following instructions</li>
-                    <li>On task</li>
-                    <li>Minor defiance</li>
-                    <li>Avoiding work</li>
-                    <li>Answering back</li>
-                    <li>Mumbling, huffing</li>
-                    <li>Passive peer conflict</li>
-                    <li>Attention seeking</li>
-                </ul>
-            </div>
-            <div style='background: #6b9b7f; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
-                <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
-            </div>
-            <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                <li>Redirect / provide options</li>
-                <li>Give space</li>
-                <li>Offer choice</li>
-                <li>Acknowledge concern</li>
-                <li>Maintain routine</li>
-                <li>Active listening</li>
-            </ul>
+        <div style='text-align: center; margin-bottom: 1.5rem;'>
+            <h2 style='color: #1a1a1a; font-weight: 700; font-size: 1.8rem; margin: 0;'>
+                Behaviour Severity Continuum
+            </h2>
         </div>
         
-        <div style='background: #f4d35e; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
-            <div style='text-align: center; margin-bottom: 1rem;'>
-                <div style='color: #2c2c2c; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 2</div>
-                <div style='color: #2c2c2c; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
-                    Escalating /<br>Dysregulated
+        <div style='display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;'>
+            
+            <div style='background: #81b29a; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 1</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Low Level /<br>Engaged
+                    </div>
                 </div>
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Following instructions</li>
+                        <li>On task</li>
+                        <li>Minor defiance</li>
+                        <li>Avoiding work</li>
+                        <li>Answering back</li>
+                        <li>Mumbling, huffing</li>
+                        <li>Passive peer conflict</li>
+                        <li>Attention seeking</li>
+                    </ul>
+                </div>
+                <div style='background: #6b9b7f; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Redirect / provide options</li>
+                    <li>Give space</li>
+                    <li>Offer choice</li>
+                    <li>Acknowledge concern</li>
+                    <li>Maintain routine</li>
+                    <li>Active listening</li>
+                </ul>
             </div>
-            <div style='background: rgba(255,255,255,0.3); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
-                <div style='color: #2c2c2c; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+            
+            <div style='background: #f4d35e; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: #2c2c2c; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 2</div>
+                    <div style='color: #2c2c2c; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Escalating /<br>Dysregulated
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.3); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: #2c2c2c; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: #2c2c2c; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Raised voice</li>
+                        <li>Arguing, blaming</li>
+                        <li>Crying, frustration</li>
+                        <li>Pacing or mild exit attempts</li>
+                        <li>Throwing soft items (not dangerous)</li>
+                    </ul>
+                </div>
+                <div style='background: #d9b84d; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: #2c2c2c; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
                 <ul style='color: #2c2c2c; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                    <li>Raised voice</li>
-                    <li>Arguing, blaming</li>
-                    <li>Crying, frustration</li>
-                    <li>Pacing or mild exit attempts</li>
-                    <li>Throwing soft items (not dangerous)</li>
+                    <li>Reduce demands</li>
+                    <li>Offer space / movement break</li>
+                    <li>Provide limited choices</li>
+                    <li>Avoid power struggles</li>
                 </ul>
             </div>
-            <div style='background: #d9b84d; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
-                <div style='color: #2c2c2c; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
-            </div>
-            <ul style='color: #2c2c2c; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                <li>Reduce demands</li>
-                <li>Offer space / movement break</li>
-                <li>Provide limited choices</li>
-                <li>Avoid power struggles</li>
-            </ul>
-        </div>
-        
-        <div style='background: #ee8434; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
-            <div style='text-align: center; margin-bottom: 1rem;'>
-                <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 3</div>
-                <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
-                    High Escalation /<br>Significant Risk
+            
+            <div style='background: #ee8434; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 3</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        High Escalation /<br>Significant Risk
+                    </div>
                 </div>
-            </div>
-            <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
-                <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
-                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                    <li>Yelling, swearing</li>
-                    <li>Slammed doors, hitting walls</li>
-                    <li>Throwing items with possible risk</li>
-                    <li>Attempting to run off</li>
-                    <li>Damaging property</li>
-                </ul>
-            </div>
-            <div style='background: #d47230; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
-                <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
-            </div>
-            <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                <li>Increase distance</li>
-                <li>Notify leadership/support</li>
-                <li>Remove audience</li>
-                <li>Complete Critical Incident Form</li>
-            </ul>
-        </div>
-        
-        <div style='background: #c9555e; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
-            <div style='text-align: center; margin-bottom: 1rem;'>
-                <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 4</div>
-                <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
-                    Dangerous<br>Behaviour
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Yelling, swearing</li>
+                        <li>Slammed doors, hitting walls</li>
+                        <li>Throwing items with possible risk</li>
+                        <li>Attempting to run off</li>
+                        <li>Damaging property</li>
+                    </ul>
                 </div>
-            </div>
-            <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
-                <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
-                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                    <li>Attempts to hit, kick, grab</li>
-                    <li>Throwing dangerous objects</li>
-                    <li>Threats of violence</li>
-                    <li>Absconding into unsafe situations</li>
-                    <li>Beginning self-harm behaviour</li>
-                </ul>
-            </div>
-            <div style='background: #b04850; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
-                <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
-            </div>
-            <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                <li>Evacuate nearby students</li>
-                <li>Leadership/response team activated</li>
-                <li>Maintain safety distance</li>
-            </ul>
-        </div>
-        
-        <div style='background: #7d2e2e; padding: 1.2rem 0.8rem;'>
-            <div style='text-align: center; margin-bottom: 1rem;'>
-                <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Crisis</div>
-                <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
-                    Crisis<br>Situation
+                <div style='background: #d47230; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
                 </div>
-            </div>
-            <div style='background: rgba(255,255,255,0.15); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
-                <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
                 <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                    <li>Physical violence causing or likely to cause injury</li>
-                    <li>Severe self-harm</li>
-                    <li>Use of weapons or dangerous items</li>
-                    <li>Full loss of control behaviour</li>
+                    <li>Increase distance</li>
+                    <li>Notify leadership/support</li>
+                    <li>Remove audience</li>
+                    <li>Complete Critical Incident Form</li>
                 </ul>
             </div>
-            <div style='background: #5c2323; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
-                <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+            
+            <div style='background: #c9555e; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 4</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Dangerous<br>Behaviour
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Attempts to hit, kick, grab</li>
+                        <li>Throwing dangerous objects</li>
+                        <li>Threats of violence</li>
+                        <li>Absconding into unsafe situations</li>
+                        <li>Beginning self-harm behaviour</li>
+                    </ul>
+                </div>
+                <div style='background: #b04850; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Evacuate nearby students</li>
+                    <li>Leadership/response team activated</li>
+                    <li>Maintain safety distance</li>
+                </ul>
             </div>
-            <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
-                <li>Immediate emergency response</li>
-                <li>Trained staff to manage situation</li>
-                <li>Preserve evidence</li>
-                <li>Complete Critical Incident Form</li>
-            </ul>
+            
+            <div style='background: #7d2e2e; padding: 1.2rem 0.8rem;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Crisis</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Crisis<br>Situation
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.15); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Physical violence causing or likely to cause injury</li>
+                        <li>Severe self-harm</li>
+                        <li>Use of weapons or dangerous items</li>
+                        <li>Full loss of control behaviour</li>
+                    </ul>
+                </div>
+                <div style='background: #5c2323; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Immediate emergency response</li>
+                    <li>Trained staff to manage situation</li>
+                    <li>Preserve evidence</li>
+                    <li>Complete Critical Incident Form</li>
+                </ul>
+            </div>
+            
         </div>
         
-    </div>
-
-    <div style='margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #f59e0b;'>
-        <div style='color: #92400e; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem;'>
-            WARNING: Critical Incident Documentation Required
-        </div>
-        <div style='color: #92400e; font-size: 0.85rem; line-height: 1.5;'>
-            <strong>Level 3 or above</strong> requires a Critical Incident ABCH Form to be completed immediately after the incident is resolved.
+        <div style='margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #f59e0b;'>
+            <div style='color: #92400e; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem;'>
+                WARNING: Critical Incident Documentation Required
+            </div>
+            <div style='color: #92400e; font-size: 0.85rem; line-height: 1.5;'>
+                <strong>Level 3 or above</strong> requires a Critical Incident ABCH Form to be completed immediately after the incident is resolved.
+            </div>
         </div>
     </div>
-</div>
-"""
-    components.html(html_content, height=700, scrolling=True)
-    
+    """, unsafe_allow_html=True)
 def send_critical_incident_email(incident_data, student, staff_email, leader_email, admin_email):
     """Send email notification to all parties"""
     st.info(f"""📧 **Email Notification Sent**
@@ -1475,129 +1111,6 @@ def generate_behaviour_analysis_plan_docx(student, full_df, top_ant, top_beh, to
         set_arial(ca_text)
         
         doc.add_page_break()
-        
-        # ================================================================
-        # AUSTRALIAN CURRICULUM CAPABILITIES SECTION
-        # ================================================================
-        
-        heading = doc.add_heading('Australian Curriculum - General Capabilities', 1)
-        for run in heading.runs:
-            run.font.color.rgb = GREEN_RGB
-            set_arial(run)
-        
-        ac_intro = doc.add_paragraph()
-        ac_intro_run = ac_intro.add_run(
-            "The Australian Curriculum includes General Capabilities that are developed across all learning areas. "
-            "Behaviour support is directly connected to the Personal and Social Capability, which encompasses "
-            "self-awareness, self-management, social awareness, and social management."
-        )
-        set_arial(ac_intro_run)
-        
-        doc.add_paragraph()
-        
-        # Get AC information for this student's primary behaviour
-        ac_info = get_ac_capability_for_behaviour(top_beh) if 'get_ac_capability_for_behaviour' in dir() else None
-        
-        if ac_info:
-            # Primary Capability
-            cap_heading = doc.add_heading('Primary Capability Focus', 2)
-            for run in cap_heading.runs:
-                run.font.color.rgb = GREEN_RGB
-                set_arial(run)
-            
-            cap_para = doc.add_paragraph()
-            cap_title = cap_para.add_run(f"{ac_info['name']} ({ac_info['code']})")
-            cap_title.bold = True
-            cap_title.font.size = Pt(12)
-            
-            elements_para = doc.add_paragraph()
-            elements_para.add_run(f"Focus Elements: {', '.join(ac_info['elements'])}")
-            
-            doc.add_paragraph()
-            
-            # Skills to Develop
-            skills_heading = doc.add_heading('Skills to Develop (AC-Aligned)', 2)
-            for run in skills_heading.runs:
-                run.font.color.rgb = GREEN_RGB
-                set_arial(run)
-            
-            for skill in ac_info['skills_to_develop']:
-                doc.add_paragraph(f"• {skill}", style='List Bullet')
-            
-            doc.add_paragraph()
-            
-            # AC Descriptors
-            desc_heading = doc.add_heading('Curriculum Descriptors', 2)
-            for run in desc_heading.runs:
-                run.font.color.rgb = GREEN_RGB
-                set_arial(run)
-            
-            for desc in ac_info['ac_descriptors']:
-                p = doc.add_paragraph(style='List Bullet')
-                run = p.add_run(desc)
-                run.italic = True
-        
-        else:
-            # Default PSC content
-            psc_heading = doc.add_heading('Personal and Social Capability', 2)
-            for run in psc_heading.runs:
-                run.font.color.rgb = GREEN_RGB
-                set_arial(run)
-            
-            psc_elements = doc.add_paragraph()
-            psc_elements.add_run("Key Elements for Behaviour Support:").bold = True
-            
-            doc.add_paragraph("• Self-awareness: Recognise emotions, understand themselves as learners", style='List Bullet')
-            doc.add_paragraph("• Self-management: Express emotions appropriately, develop self-discipline", style='List Bullet')
-            doc.add_paragraph("• Social awareness: Appreciate diverse perspectives, understand relationships", style='List Bullet')
-            doc.add_paragraph("• Social management: Communicate effectively, resolve conflict", style='List Bullet')
-        
-        doc.add_paragraph()
-        
-        # Learning Goals
-        goals_heading = doc.add_heading('AC-Aligned Learning Goals', 2)
-        for run in goals_heading.runs:
-            run.font.color.rgb = GREEN_RGB
-            set_arial(run)
-        
-        goals_intro = doc.add_paragraph()
-        goals_intro_run = goals_intro.add_run(f"Suggested goals for {student['name']} based on behaviour patterns and grade level ({student['grade']}):")
-        goals_intro_run.italic = True
-        set_arial(goals_intro_run)
-        
-        # Generate grade-appropriate goals
-        learning_goals = generate_ac_learning_goals(top_beh, top_ant, student['grade']) if 'generate_ac_learning_goals' in dir() else []
-        
-        if learning_goals:
-            for goal in learning_goals:
-                p = doc.add_paragraph(style='List Bullet')
-                skill_run = p.add_run(f"{goal['skill']}: ")
-                skill_run.bold = True
-                p.add_run(f"{goal['goal']} ")
-                desc_run = p.add_run(f"({goal['ac_descriptor']})")
-                desc_run.italic = True
-        else:
-            doc.add_paragraph("• Emotional recognition: Student will identify and name emotions when prompted", style='List Bullet')
-            doc.add_paragraph("• Help-seeking: Student will use a help-seeking strategy independently", style='List Bullet')
-            doc.add_paragraph("• Self-regulation: Student will use a calming strategy when dysregulated", style='List Bullet')
-        
-        doc.add_paragraph()
-        
-        # Connection note
-        note_para = doc.add_paragraph()
-        note_title = note_para.add_run("Important: ")
-        note_title.bold = True
-        note_para.add_run(
-            "Progress in Personal and Social Capability should be documented alongside behaviour data. "
-            "This demonstrates growth in underlying skills, not just reduction in incidents."
-        )
-        
-        doc.add_page_break()
-        
-        # ================================================================
-        # EVIDENCE-BASED RECOMMENDATIONS
-        # ================================================================
-        
         heading = doc.add_heading('Evidence-Based Recommendations', 1)
         for run in heading.runs:
             run.font.color.rgb = GREEN_RGB
@@ -1645,7 +1158,7 @@ def generate_behaviour_analysis_plan_docx(student, full_df, top_ant, top_beh, to
         doc.add_paragraph("• Emotional literacy skills", style='List Bullet')
         doc.add_paragraph("• Build coping strategies", style='List Bullet')
         
-        heading = doc.add_heading('4. SMART Goal (AC-Aligned)', 2)
+        heading = doc.add_heading('4. SMART Goal', 2)
 
         
         for run in heading.runs:
@@ -1657,11 +1170,7 @@ def generate_behaviour_analysis_plan_docx(student, full_df, top_ant, top_beh, to
             set_arial(run)
         goal = doc.add_paragraph()
         goal.add_run('Measurable: ').bold = True
-        goal.add_run(f"Over 5 weeks, {student['name']} will use a help-seeking strategy in 4/5 opportunities with support.")
-        doc.add_paragraph()
-        goal_ac = doc.add_paragraph()
-        goal_ac_run = goal_ac.add_run("AC Alignment: PSC - Self-management: 'Work independently and show initiative'")
-        goal_ac_run.italic = True
+        goal.add_run("Over 5 weeks, use help-seeking strategy in 4/5 opportunities with support.")
         doc.add_paragraph()
         doc.add_paragraph('Review Date: ' + (datetime.now() + timedelta(weeks=5)).strftime('%d %B %Y'))
         
@@ -1677,7 +1186,7 @@ def generate_behaviour_analysis_plan_docx(student, full_df, top_ant, top_beh, to
         
         footer2 = doc.add_paragraph()
         footer2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        footer2_run = footer2.add_run('Evidence-based: ABA, Trauma-Informed, Berry Street, CPI, Australian Curriculum\n')
+        footer2_run = footer2.add_run('Evidence-based: ABA, Trauma-Informed, Berry Street, CPI\n')
         footer2_run.font.size = Pt(9)
         footer2_run.font.color.rgb = RGBColor(100, 116, 139)
         
@@ -1709,9 +1218,6 @@ def hash_password(plain_password: str) -> str:
     hashed = bcrypt.hashpw(plain_password.encode('utf-8'), salt)
     return hashed.decode('utf-8')
 
-# FIXED load_students_from_db FUNCTION
-# Replace the existing load_students_from_db function (around line 1060-1085)
-
 def load_students_from_db():
     """Load students from Supabase database"""
     if not supabase:
@@ -1721,44 +1227,20 @@ def load_students_from_db():
         response = supabase.table('students').select('*').execute()
         students = []
         for row in response.data:
-            # Convert grade from integer back to string format
-            grade_num = row['grade']
-            if grade_num == 0:
-                grade_str = 'R'
-            else:
-                grade_str = f'Y{grade_num}'
-            
-            # Handle first_name/last_name - construct name if not present
-            first_name = row.get('first_name', '')
-            last_name = row.get('last_name', '')
-            full_name = row.get('name', '')
-            
-            # If first_name/last_name not in DB, parse from name
-            if not first_name and full_name:
-                parts = full_name.split()
-                first_name = parts[0] if parts else ''
-                last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
-            
-            # If name not in DB, construct from first/last
-            if not full_name and (first_name or last_name):
-                full_name = f"{first_name} {last_name}".strip()
-            
             students.append({
                 "id": str(row['id']),
-                "first_name": first_name,
-                "last_name": last_name,
-                "name": full_name,
+                "name": row['name'],
                 "edid": row['edid'],
-                "grade": grade_str,  # Convert back to Y1, Y2, R format
+                "grade": row['grade'],
                 "dob": row['dob'],
                 "program": row['program'],
                 "placement_start": row['placement_start'],
                 "placement_end": row['placement_end']
             })
-        return students
+        return students  # Return empty list if no students in database
     except Exception as e:
         st.error(f"Error loading students: {e}")
-        return []
+        return []  # Return empty list on error
 
 def save_student_to_db(student):
     """Save a student to Supabase database"""
@@ -1766,21 +1248,10 @@ def save_student_to_db(student):
         return False
     
     try:
-        # Convert grade to just the number if it starts with Y
-        grade_value = student['grade']
-        if isinstance(grade_value, str):
-            if grade_value.startswith('Y'):
-                grade_value = grade_value[1:]
-            elif grade_value == 'R':
-                grade_value = 0
-        
         data = {
-            "first_name": student.get('first_name', student['name'].split()[0] if student['name'] else ''),
-            "last_name": student.get('last_name', ' '.join(student['name'].split()[1:]) if len(student['name'].split()) > 1 else ''),
             "name": student['name'],
             "edid": student['edid'],
-            "grade": int(grade_value) if str(grade_value).isdigit() else 0,
-            "year_level": int(grade_value) if str(grade_value).isdigit() else 0,
+            "grade": student['grade'],
             "dob": student['dob'],
             "program": student['program'],
             "placement_start": student['placement_start'],
@@ -1788,15 +1259,16 @@ def save_student_to_db(student):
         }
         
         if 'id' in student and student['id'].startswith('stu_'):
+            # New student (generated ID from app)
             supabase.table('students').insert(data).execute()
         else:
+            # Existing student (UUID from database)
             supabase.table('students').update(data).eq('id', student['id']).execute()
-        
         return True
-        
     except Exception as e:
         st.error(f"Error saving student: {e}")
         return False
+
 def delete_student_from_db(student_id):
     """Delete a student from Supabase database"""
     if not supabase:
@@ -1818,26 +1290,9 @@ def load_staff_from_db():
         response = supabase.table('staff').select('*').execute()
         staff = []
         for row in response.data:
-            # Handle first_name/last_name - construct name if not present
-            first_name = row.get('first_name', '')
-            last_name = row.get('last_name', '')
-            full_name = row.get('name', '')
-            
-            # If first_name/last_name not in DB, parse from name
-            if not first_name and full_name:
-                parts = full_name.split()
-                first_name = parts[0] if parts else ''
-                last_name = ' '.join(parts[1:]) if len(parts) > 1 else ''
-            
-            # If name not in DB, construct from first/last
-            if not full_name and (first_name or last_name):
-                full_name = f"{first_name} {last_name}".strip()
-            
             staff.append({
                 "id": str(row['id']),
-                "first_name": first_name,
-                "last_name": last_name,
-                "name": full_name,
+                "name": row['name'],
                 "email": row['email'],
                 "password": row.get('password'),  # Keep for backward compatibility
                 "password_hash": row.get('password_hash', row.get('password')),  # Use password_hash if available
@@ -1860,8 +1315,6 @@ def save_staff_to_db(staff_member):
     
     try:
         data = {
-            "first_name": staff_member.get('first_name', staff_member['name'].split()[0] if staff_member['name'] else ''),
-            "last_name": staff_member.get('last_name', ' '.join(staff_member['name'].split()[1:]) if len(staff_member['name'].split()) > 1 else ''),
             "name": staff_member['name'],
             "email": staff_member['email'],
             "password": staff_member['password'],
@@ -2289,37 +1742,16 @@ def render_incident_log_page():
         st.markdown("---")
         st.stop()
     
-    # INCIDENT FORM - Split to show hypothesis before severity
-    st.markdown("### Log New Incident")
-    
-    # First section: Capture antecedent and behaviour for hypothesis generation
-    col1, col2 = st.columns(2)
-    with col1:
-        behaviour_select = st.selectbox("Behaviour Type *", [""] + BEHAVIOUR_TYPES, key="inc_beh_select")
-    with col2:
-        antecedent_select = st.selectbox("Antecedent/Trigger *", [""] + ANTECEDENTS, key="inc_ant_select")
-    
-    # Display hypothesis if both are selected
-    if behaviour_select and antecedent_select:
-        hyp_ai = generate_hypothesis_ai(antecedent_select, behaviour_select, "")
-        hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
-        st.info(f"🧠 **Suggested Hypothesis:** {hypothesis_text}")
-        # Store for form submission
-        st.session_state.current_hypothesis = hyp_ai
-    else:
-        st.session_state.current_hypothesis = None
-    
-    # Main form with remaining fields
+    # INCIDENT FORM
     with st.form("incident_form", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
-            inc_date = st.date_input("Date *", date.today(), key="inc_date", format="DD/MM/YYYY")
+            inc_date = st.date_input("Date *", date.today(), key="inc_date")
             inc_time = st.time_input("Time *", datetime.now().time(), key="inc_time")
             location = st.selectbox("Location *", [""] + LOCATIONS, key="inc_loc")
         with col2:
-            # Hidden fields to pass the pre-selected values
-            st.markdown(f"**Behaviour Type:** {behaviour_select if behaviour_select else 'Not selected'}")
-            st.markdown(f"**Antecedent/Trigger:** {antecedent_select if antecedent_select else 'Not selected'}")
+            behaviour = st.selectbox("Behaviour Type *", [""] + BEHAVIOUR_TYPES, key="inc_beh")
+            antecedent = st.selectbox("Antecedent/Trigger *", [""] + ANTECEDENTS, key="inc_ant")
             # MULTIPLE INTERVENTIONS
             interventions = st.multiselect("Interventions Used *", INTERVENTIONS, key="inc_ints")
         
@@ -2329,53 +1761,6 @@ def render_incident_log_page():
         manual_critical = st.checkbox("This incident requires a Critical Incident ABCH Form (regardless of severity)", key="manual_crit")
         submitted = st.form_submit_button("Submit Incident", type="primary")
     
-    if submitted:
-        behaviour = behaviour_select
-        antecedent = antecedent_select
-        if not location or not behaviour or not antecedent or not interventions:
-            st.error("Please complete all required fields marked with *")
-        else:
-            new_id = str(uuid.uuid4())
-            is_critical = (severity >= 3) or manual_critical
-            
-            # Use pre-generated hypothesis or generate new one
-            hyp_ai = st.session_state.get('current_hypothesis') or generate_hypothesis_ai(antecedent, behaviour, "")
-            hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
-            
-            rec = {
-                "id": new_id, 
-                "student_id": student_id, 
-                "student_name": student["name"],
-                "date": inc_date.isoformat(), 
-                "time": inc_time.strftime("%H:%M:%S"),
-                "day": inc_date.strftime("%A"), 
-                "session": get_session_from_time(inc_time),
-                "location": location, 
-                "behaviour_type": behaviour, 
-                "antecedent": antecedent,
-                "intervention": interventions,
-                "severity": severity,
-                "reported_by": st.session_state.current_user["id"],
-                "duration_minutes": duration, 
-                "description": description or "", 
-                "is_critical": is_critical,
-                "hypothesis_function": hyp_ai['function'],
-                "hypothesis_item": hyp_ai['item']
-            }
-            
-            # SAVE TO DATABASE FIRST
-            if save_incident_to_db(rec):
-                # Then add to session state
-                st.session_state.incidents.append(rec)
-                st.success("✅ Incident logged successfully and saved to database")
-                
-                if is_critical:
-                    st.session_state.current_incident_id = new_id
-                    st.session_state.show_critical_prompt = True
-                    st.session_state.last_incident_info = {"severity": severity, "manual": manual_critical}
-                    st.rerun()
-            else:
-                st.error("❌ Failed to save incident to database. Please try again.")
 
 
 def render_critical_incident_page():
@@ -2406,15 +1791,14 @@ def render_critical_incident_page():
             st.markdown(f"**Student:** {student['name']}")
             st.markdown(f"**Grade:** {student['grade']}")
         with col2:
-            st.markdown(f"**Date:** {format_date_dmy(quick_inc['date'])}")
+            st.markdown(f"**Date:** {quick_inc['date']}")
             st.markdown(f"**Time:** {format_time_12hr(quick_inc['time'])}")
         with col3:
             st.markdown(f"**Location:** {quick_inc['location']}")
             st.markdown(f"**Session:** {quick_inc['session']}")
         with col4:
             st.markdown(f"**Severity:** {quick_inc['severity']}")
-        hypothesis_display = f"{quick_inc.get('hypothesis_function', '')} {quick_inc.get('hypothesis_item', '')}".strip() or 'N/A'
-        st.markdown(f"**Hypothesis:** {hypothesis_display}")
+        st.markdown(f"**Hypothesis:** {quick_inc.get('hypothesis', 'N/A')}")
     
     st.markdown("---")
     st.markdown("### ABCH Chronology")
@@ -2758,7 +2142,7 @@ def render_student_analysis_page():
             x=daily_quick["date_parsed"], 
             y=daily_quick["count"],
             name='Regular Incidents',
-            marker=dict(color='#4A90A4', line=dict(color='white', width=1)),
+            marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
             text=daily_quick["count"],
             textposition='inside',
             textfont=dict(color='white', size=11, family='Arial Black'),
@@ -2835,7 +2219,7 @@ def render_student_analysis_page():
     
     fig2.add_trace(go.Bar(
         y=all_behaviours, x=quick_beh_counts, name='Regular', orientation='h',
-        marker=dict(color='#4A90A4', line=dict(color='white', width=1)),
+        marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
         text=quick_beh_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black'),
         hovertemplate='<b>%{y}</b><br>Regular: %{x}<extra></extra>'
@@ -2908,7 +2292,7 @@ def render_student_analysis_page():
     
     fig3.add_trace(go.Bar(
         y=all_triggers, x=quick_ant_counts, name='Regular', orientation='h',
-        marker=dict(color='#4A90A4', line=dict(color='white', width=1)),
+        marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
         text=quick_ant_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black')
     ))
@@ -2972,7 +2356,7 @@ def render_student_analysis_page():
         fig4.add_trace(go.Scatter(
             x=quick_only_df["date_parsed"], y=quick_only_df["severity"],
             mode='markers', name='Regular',
-            marker=dict(size=12, color='#4A90A4', opacity=0.7, line=dict(color='white', width=1.5)),
+            marker=dict(size=12, color='#3b82f6', opacity=0.7, line=dict(color='white', width=1.5)),
             hovertemplate='<b>Date:</b> %{x}<br><b>Severity:</b> %{y}<extra></extra>'
         ))
     
@@ -3050,7 +2434,7 @@ def render_student_analysis_page():
     
     fig5.add_trace(go.Bar(
         y=all_locations, x=quick_loc_counts, name='Regular', orientation='h',
-        marker=dict(color='#4A90A4', line=dict(color='white', width=1)),
+        marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
         text=quick_loc_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black')
     ))
@@ -3120,7 +2504,7 @@ def render_student_analysis_page():
     
     fig6.add_trace(go.Bar(
         x=session_order, y=quick_session_counts, name='Regular',
-        marker=dict(color='#4A90A4', line=dict(color='white', width=1)),
+        marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
         text=quick_session_counts, textposition='inside',
         textfont=dict(color='white', size=12, family='Arial Black')
     ))
@@ -3181,7 +2565,7 @@ def render_student_analysis_page():
     fig7 = go.Figure()
     fig7.add_trace(go.Bar(
         x=day_counts.index, y=day_counts.values,
-        marker=dict(color='#008080'),
+        marker=dict(color='#64748b'),
         text=day_counts.values, textposition='outside'
     ))
     fig7.update_layout(
@@ -3197,338 +2581,14 @@ def render_student_analysis_page():
                    "**Berry Street Relationship:** Strong connections reduce incidents.")
     st.markdown("---")
     
-    # ================================================================
-    # NEW: HYPOTHESIS/FUNCTION ANALYSIS
-    # ================================================================
-    
-    st.markdown("### 🎯 Behaviour Function Analysis")
-    st.caption("Understanding the purpose behind behaviours using Applied Behaviour Analysis (ABA)")
-    
-    # Analyse hypothesis patterns
-    if not quick_only_df.empty and 'hypothesis_function' in quick_only_df.columns:
-        # Function distribution
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.markdown("**Function Distribution**")
-            func_counts = quick_only_df['hypothesis_function'].value_counts()
-            
-            fig_func = go.Figure()
-            colors_func = ['#008080' if f == 'To avoid' else '#20B2AA' for f in func_counts.index]
-            fig_func.add_trace(go.Pie(
-                labels=func_counts.index,
-                values=func_counts.values,
-                marker=dict(colors=colors_func, line=dict(color='white', width=2)),
-                textinfo='label+percent',
-                textfont=dict(size=12, family='Arial'),
-                hole=0.4
-            ))
-            fig_func.update_layout(
-                height=280,
-                showlegend=False,
-                margin=dict(t=20, b=20, l=20, r=20),
-                paper_bgcolor='white'
-            )
-            st.plotly_chart(fig_func, use_container_width=True)
-        
-        with col2:
-            st.markdown("**What Student is Seeking**")
-            if 'hypothesis_item' in quick_only_df.columns:
-                item_counts = quick_only_df['hypothesis_item'].value_counts()
-                
-                fig_item = go.Figure()
-                fig_item.add_trace(go.Bar(
-                    x=item_counts.values,
-                    y=item_counts.index,
-                    orientation='h',
-                    marker=dict(color=['#4A90A4', '#6BB9A0', '#48D1CC', '#7FFFD4'][:len(item_counts)],
-                               line=dict(color='white', width=1)),
-                    text=item_counts.values,
-                    textposition='inside',
-                    textfont=dict(color='white', size=11, family='Arial Black')
-                ))
-                fig_item.update_layout(
-                    height=280,
-                    xaxis_title="<b>Count</b>",
-                    plot_bgcolor='white',
-                    paper_bgcolor='white',
-                    margin=dict(t=20, b=40, l=20, r=20),
-                    xaxis=dict(gridcolor='#e2e8f0', showline=True, linewidth=2, linecolor='#cbd5e1'),
-                    yaxis=dict(showline=True, linewidth=2, linecolor='#cbd5e1')
-                )
-                st.plotly_chart(fig_item, use_container_width=True)
-        
-        # Interpretation
-        primary_function = func_counts.index[0] if len(func_counts) > 0 else "Unknown"
-        primary_item = item_counts.index[0] if 'hypothesis_item' in quick_only_df.columns and len(item_counts) > 0 else "Unknown"
-        
-        with st.expander("💡 Clinical Interpretation (Behaviour Function)"):
-            st.markdown(f"""
-**Primary Hypothesis:** {primary_function} {primary_item}
-
-**What This Means:**
-- **{primary_function}** behaviours indicate the student is trying to {'escape or avoid something aversive' if primary_function == 'To avoid' else 'access or obtain something desired'}
-- **{primary_item}** focus suggests intervention should target {'reducing demands or modifying environment' if primary_item == 'Activity' else 'sensory regulation strategies' if primary_item == 'Sensory' else 'increasing positive attention and connection' if primary_item == 'Attention' else 'teaching appropriate requesting skills'}
-
-**Berry Street Connection:**
-- {'**BODY Domain:** Focus on regulation before challenging activities' if primary_function == 'To avoid' else '**RELATIONSHIP Domain:** Increase positive attention and connection opportunities'}
-            """)
-    
-    st.markdown("---")
-    
-    # ================================================================
-    # NEW: AUSTRALIAN CURRICULUM CAPABILITIES SECTION
-    # ================================================================
-    
-    st.markdown("### 🎓 Australian Curriculum - General Capabilities Analysis")
-    st.caption("Linking behaviour support to curriculum outcomes (Personal and Social Capability focus)")
+    # CLINICAL SUMMARY
+    st.markdown("### 🧠 Clinical Summary")
+    st.caption("Evidence-based interpretation using ABA, Trauma-Informed Practice, Berry Street Education Model, and CPI principles")
     
     top_beh = full_df["behaviour_type"].mode()[0] if len(full_df) > 0 else "Unknown"
     top_ant = full_df["antecedent"].mode()[0] if len(full_df) > 0 else "Unknown"
     top_loc = full_df["location"].mode()[0] if len(full_df) > 0 else "Unknown"
     top_session = full_df["session"].mode()[0] if len(full_df) > 0 else "Unknown"
-    
-    # Get AC capability information
-    ac_info = get_ac_capability_for_behaviour(top_beh)
-    ant_ac_info = get_ac_skills_for_antecedent(top_ant)
-    
-    if ac_info:
-        col1, col2 = st.columns([2, 1])
-        
-        with col1:
-            st.markdown(f"""
-<div style='background: linear-gradient(135deg, #E8F4F8 0%, #D4EEF4 100%); padding: 1.5rem; border-radius: 10px; border-left: 4px solid {ac_info['color']}; margin-bottom: 1rem;'>
-    <h4 style='color: #008080; margin: 0 0 0.5rem 0;'>Primary Capability: {ac_info['name']}</h4>
-    <p style='margin: 0; color: #333;'><strong>Focus Elements:</strong> {', '.join(ac_info['elements'])}</p>
-</div>
-            """, unsafe_allow_html=True)
-            
-            st.markdown("**Skills to Develop (AC Aligned):**")
-            for skill in ac_info['skills_to_develop']:
-                st.markdown(f"• {skill}")
-            
-            st.markdown("**Curriculum Descriptors:**")
-            for desc in ac_info['ac_descriptors']:
-                st.markdown(f"• _{desc}_")
-        
-        with col2:
-            # AC Capability visual
-            st.markdown("**Capability Focus**")
-            
-            # Create a simple gauge/indicator
-            fig_ac = go.Figure()
-            
-            capabilities = ["PSC", "CCT", "EU", "ICU"]
-            cap_names = ["Personal & Social", "Critical Thinking", "Ethical", "Intercultural"]
-            cap_colors = ['#4A90A4', '#6BB9A0', '#E8B960', '#D4A574']
-            
-            # Highlight the primary capability
-            values = [1 if c == ac_info['code'] else 0.3 for c in capabilities]
-            
-            fig_ac.add_trace(go.Bar(
-                x=cap_names,
-                y=values,
-                marker=dict(color=cap_colors, line=dict(color='white', width=1)),
-                text=['PRIMARY' if v == 1 else '' for v in values],
-                textposition='inside',
-                textfont=dict(color='white', size=10, family='Arial Black')
-            ))
-            fig_ac.update_layout(
-                height=200,
-                showlegend=False,
-                yaxis=dict(visible=False),
-                xaxis=dict(tickangle=-45),
-                margin=dict(t=10, b=60, l=10, r=10),
-                plot_bgcolor='white',
-                paper_bgcolor='white'
-            )
-            st.plotly_chart(fig_ac, use_container_width=True)
-    
-    # Generate AC-aligned learning goals
-    learning_goals = generate_ac_learning_goals(top_beh, top_ant, student['grade'])
-    
-    st.markdown("**Suggested Learning Goals (Grade-Appropriate):**")
-    goals_table = []
-    for goal in learning_goals:
-        goals_table.append({
-            "Skill Focus": goal['skill'],
-            "Learning Goal": goal['goal'],
-            "AC Descriptor": goal['ac_descriptor'],
-            "Complexity": goal['complexity'].title()
-        })
-    
-    if goals_table:
-        goals_df = pd.DataFrame(goals_table)
-        st.dataframe(goals_df, hide_index=True, use_container_width=True)
-    
-    with st.expander("💡 Understanding AC General Capabilities"):
-        st.markdown("""
-**Personal and Social Capability** is developed when students:
-- Learn to understand themselves and others
-- Manage their emotions, relationships and lives
-- Develop resilience and a sense of self-worth
-- Work effectively with others
-- Make responsible decisions
-
-**Connection to Behaviour Support:**
-All behaviour is an attempt to meet a need. When we support students to develop Personal and Social Capability skills, we give them the tools to meet their needs in prosocial ways. This is not just behaviour management - it is curriculum-aligned skill development.
-
-**Assessment Note:** Progress in these capabilities should be documented alongside behaviour data to show growth in underlying skills, not just reduction in incidents.
-        """)
-    
-    st.markdown("---")
-    
-    # ================================================================
-    # NEW: INTERVENTION EFFECTIVENESS ANALYSIS
-    # ================================================================
-    
-    st.markdown("### 💊 Intervention Analysis")
-    st.caption("Which strategies are being used and their connection to capability development")
-    
-    if not quick_only_df.empty and 'intervention' in quick_only_df.columns:
-        # Flatten interventions
-        all_interventions = []
-        for interventions in quick_only_df['intervention']:
-            if isinstance(interventions, list):
-                all_interventions.extend(interventions)
-            elif isinstance(interventions, str):
-                all_interventions.append(interventions)
-        
-        if all_interventions:
-            intervention_counts = pd.Series(all_interventions).value_counts()
-            
-            col1, col2 = st.columns([3, 2])
-            
-            with col1:
-                fig_int = go.Figure()
-                fig_int.add_trace(go.Bar(
-                    y=intervention_counts.index[:8],
-                    x=intervention_counts.values[:8],
-                    orientation='h',
-                    marker=dict(
-                        color=['#008080', '#20B2AA', '#48D1CC', '#4A90A4', '#6BB9A0', '#7FFFD4', '#40E0D0', '#00CED1'][:len(intervention_counts)],
-                        line=dict(color='white', width=1)
-                    ),
-                    text=intervention_counts.values[:8],
-                    textposition='inside',
-                    textfont=dict(color='white', size=11, family='Arial Black')
-                ))
-                fig_int.update_layout(
-                    height=300,
-                    xaxis_title="<b>Times Used</b>",
-                    plot_bgcolor='white',
-                    paper_bgcolor='white',
-                    margin=dict(t=20, b=40, l=20, r=20),
-                    xaxis=dict(gridcolor='#e2e8f0', showline=True, linewidth=2, linecolor='#cbd5e1'),
-                    yaxis=dict(showline=True, linewidth=2, linecolor='#cbd5e1')
-                )
-                st.plotly_chart(fig_int, use_container_width=True)
-            
-            with col2:
-                st.markdown("**Intervention-Capability Alignment**")
-                
-                # Get AC alignment for top interventions
-                top_interventions = intervention_counts.head(4).index.tolist()
-                alignments = get_intervention_ac_alignment(top_interventions)
-                
-                for align in alignments:
-                    st.markdown(f"""
-<div style='background: #f8f9fa; padding: 0.8rem; border-radius: 6px; margin-bottom: 0.5rem; border-left: 3px solid #008080;'>
-    <strong style='color: #008080;'>{align['intervention']}</strong><br>
-    <small style='color: #666;'>{align['capability']} - {align['element']}</small><br>
-    <small style='color: #333;'>Supports: {align['supports']}</small>
-</div>
-                    """, unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # ================================================================
-    # NEW: WEEK-OVER-WEEK TREND ANALYSIS
-    # ================================================================
-    
-    st.markdown("### 📈 Weekly Trend Analysis")
-    st.caption("Tracking progress over time to inform intervention adjustments")
-    
-    if len(full_df) >= 7:
-        full_df['week'] = full_df['date_parsed'].dt.isocalendar().week
-        weekly_stats = full_df.groupby('week').agg({
-            'severity': ['count', 'mean'],
-            'incident_type': lambda x: (x == 'Critical').sum()
-        }).reset_index()
-        weekly_stats.columns = ['Week', 'Total Incidents', 'Avg Severity', 'Critical Count']
-        
-        if len(weekly_stats) >= 2:
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                fig_weekly = go.Figure()
-                fig_weekly.add_trace(go.Scatter(
-                    x=weekly_stats['Week'],
-                    y=weekly_stats['Total Incidents'],
-                    mode='lines+markers',
-                    name='Total Incidents',
-                    line=dict(color='#008080', width=3),
-                    marker=dict(size=10, color='#008080', line=dict(color='white', width=2))
-                ))
-                fig_weekly.add_trace(go.Scatter(
-                    x=weekly_stats['Week'],
-                    y=weekly_stats['Critical Count'],
-                    mode='lines+markers',
-                    name='Critical Incidents',
-                    line=dict(color='#DC3545', width=3, dash='dash'),
-                    marker=dict(size=10, color='#DC3545', symbol='diamond', line=dict(color='white', width=2))
-                ))
-                fig_weekly.update_layout(
-                    height=280,
-                    xaxis_title="<b>Week Number</b>",
-                    yaxis_title="<b>Count</b>",
-                    plot_bgcolor='white',
-                    paper_bgcolor='white',
-                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-                    xaxis=dict(gridcolor='#e2e8f0', showline=True, linewidth=2, linecolor='#cbd5e1'),
-                    yaxis=dict(gridcolor='#e2e8f0', showline=True, linewidth=2, linecolor='#cbd5e1')
-                )
-                st.plotly_chart(fig_weekly, use_container_width=True)
-            
-            with col2:
-                # Week-over-week change
-                if len(weekly_stats) >= 2:
-                    last_week = weekly_stats.iloc[-1]
-                    prev_week = weekly_stats.iloc[-2]
-                    
-                    incident_change = last_week['Total Incidents'] - prev_week['Total Incidents']
-                    severity_change = last_week['Avg Severity'] - prev_week['Avg Severity']
-                    
-                    st.markdown("**Week-over-Week Change**")
-                    
-                    col_a, col_b = st.columns(2)
-                    with col_a:
-                        delta_color = "inverse" if incident_change <= 0 else "normal"
-                        st.metric("Incidents", int(last_week['Total Incidents']), 
-                                 delta=f"{int(incident_change):+d}", delta_color=delta_color)
-                    with col_b:
-                        delta_color = "inverse" if severity_change <= 0 else "normal"
-                        st.metric("Avg Severity", f"{last_week['Avg Severity']:.1f}",
-                                 delta=f"{severity_change:+.1f}", delta_color=delta_color)
-                    
-                    # Trend interpretation
-                    if incident_change < 0 and severity_change < 0:
-                        st.success("📉 **Improving:** Both incidents and severity decreasing")
-                    elif incident_change > 0 and severity_change > 0:
-                        st.error("📈 **Concern:** Both incidents and severity increasing")
-                    elif incident_change < 0:
-                        st.info("📊 **Mixed:** Fewer incidents but severity unchanged/increasing")
-                    else:
-                        st.warning("📊 **Monitor:** Patterns require continued observation")
-    
-    st.markdown("---")
-    
-    # ================================================================
-    # ENHANCED CLINICAL SUMMARY
-    # ================================================================
-    
-    st.markdown("### 🧠 Clinical Summary & AC-Aligned Recommendations")
-    st.caption("Evidence-based interpretation using ABA, Berry Street, CPI, and Australian Curriculum frameworks")
     
     recent = full_df.tail(7)
     risk_score = min(100, int(
@@ -3538,54 +2598,24 @@ All behaviour is an attempt to meet a need. When we support students to develop 
     ))
     risk_level = "LOW" if risk_score < 30 else "MODERATE" if risk_score < 60 else "HIGH"
     
-    col1, col2 = st.columns([2, 1])
+    st.info(f"""
+    **Key Patterns Identified:**
+    - Primary behaviour: **{top_beh}**
+    - Main trigger: **{top_ant}**
+    - Hotspot location: **{top_loc}**
+    - Peak time: **{top_session}**
+    - Risk Level: **{risk_level}** ({risk_score}/100)
     
-    with col1:
-        st.info(f"""
-**Key Patterns Identified:**
-- Primary behaviour: **{top_beh}**
-- Main trigger: **{top_ant}**
-- Hotspot location: **{top_loc}**
-- Peak time: **{top_session}**
-- Risk Level: **{risk_level}** ({risk_score}/100)
-
-**Primary AC Capability Focus:** {ac_info['name'] if ac_info else 'Personal and Social Capability'}
-**Berry Street Focus:** Body (regulation) and Relationship (connection) domains are foundation.
-        """)
-    
-    with col2:
-        # Risk gauge
-        risk_color = '#28A745' if risk_score < 30 else '#FFC107' if risk_score < 60 else '#DC3545'
-        st.markdown(f"""
-<div style='text-align: center; padding: 1rem; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 10px;'>
-    <div style='font-size: 3rem; font-weight: bold; color: {risk_color};'>{risk_score}</div>
-    <div style='font-size: 0.9rem; color: #666;'>Risk Score</div>
-    <div style='font-size: 1.2rem; font-weight: bold; color: {risk_color};'>{risk_level}</div>
-</div>
-        """, unsafe_allow_html=True)
+    **Berry Street Focus:** Body (regulation) and Relationship (connection) domains are foundation.
+    """)
     
     st.success(f"""
-**Evidence-Based Recommendations (AC-Aligned):**
-
-**1. Body Domain (PSC: Self-management)**
-- Regulated start before {top_session} session
-- Breathing exercises and movement breaks
-- *AC Goal: "Express emotions appropriately"*
-
-**2. Relationship Domain (PSC: Social awareness & management)**
-- Key adult check-in each morning
-- Acknowledgment of feelings before demands
-- *AC Goal: "Develop positive relationships"*
-
-**3. Stamina Domain (PSC: Self-management)**
-- Teach help-seeking using visual supports
-- Practice requesting breaks in calm moments
-- *AC Goal: "Persist when faced with challenges"*
-
-**4. SMART Goal (AC-Aligned):**
-Over 5 weeks, {student['name']} will use a help-seeking strategy (e.g., break card, signal to adult) in 4 out of 5 opportunities when experiencing triggers related to '{top_ant[:30]}...', with visual and verbal support.
-
-*This goal addresses PSC element: "Work independently and show initiative"*
+    **Evidence-Based Recommendations:**
+    
+    **1. Body Domain:** Regulated start before {top_session}, breathing exercises, movement breaks
+    **2. Relationship Domain:** Key adult check-in, acknowledgment of feelings, co-regulation
+    **3. Stamina Domain:** Teach help-seeking, practice requesting breaks
+    **4. SMART Goal:** Over 5 weeks, use help-seeking strategy in 4/5 opportunities
     """)
     
     st.markdown("---")
@@ -3631,6 +2661,170 @@ Over 5 weeks, {student['name']} will use a help-seeking strategy (e.g., break ca
 
 
 
+
+def render_student_dashboard():
+    """Quick visual dashboard for student overview"""
+    student_id = st.session_state.get("selected_student_id")
+    student = get_student(student_id)
+    if not student:
+        st.error("No student selected")
+        return
+    
+    st.markdown(f"## 📊 Dashboard — {student['name']}")
+    
+    # Navigation
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        if st.button("⬅ Back to Students", key="back_dash"):
+            go_to("program_students", selected_program=student["program"])
+    with col2:
+        if st.button("📝 Log Incident", key="log_dash"):
+            go_to("incident_log", selected_student_id=student_id)
+    with col3:
+        if st.button("📈 Full Analysis", key="analysis_dash"):
+            go_to("student_analysis", selected_student_id=student_id)
+    
+    st.markdown("---")
+    
+    incidents = [i for i in st.session_state.incidents if i["student_id"] == student_id]
+    critical = [c for c in st.session_state.critical_incidents if c["student_id"] == student_id]
+    
+    if not incidents and not critical:
+        st.info("📋 No incident data yet. Click 'Log Incident' to start tracking.")
+        return
+    
+    quick_df = pd.DataFrame(incidents) if incidents else pd.DataFrame()
+    crit_df = pd.DataFrame(critical) if critical else pd.DataFrame()
+    
+    if not quick_df.empty:
+        quick_df["incident_type"] = "Quick"
+        quick_df["date_parsed"] = pd.to_datetime(quick_df["date"])
+    
+    if not crit_df.empty:
+        crit_df["incident_type"] = "Critical"
+        crit_df["date_parsed"] = pd.to_datetime(crit_df.get("created_at", datetime.now().isoformat()))
+        crit_df["severity"] = 5
+    
+    full_df = pd.concat([quick_df, crit_df], ignore_index=True).sort_values("date_parsed") if not quick_df.empty or not crit_df.empty else pd.DataFrame()
+    
+    total_incidents = len(full_df)
+    critical_count = len(full_df[full_df["incident_type"] == "Critical"])
+    avg_severity = full_df["severity"].mean() if "severity" in full_df.columns else 0
+    
+    week_ago = datetime.now() - timedelta(days=7)
+    recent_incidents = len(full_df[full_df["date_parsed"] >= week_ago]) if not full_df.empty else 0
+    
+    risk_score = min(100, int(
+        (recent_incidents / 7 * 15) +
+        (avg_severity * 10) +
+        (critical_count / max(total_incidents, 1) * 40)
+    ))
+    
+    if risk_score < 30:
+        risk_level = "LOW"
+        risk_color = "#10b981"
+        risk_emoji = "🟢"
+    elif risk_score < 60:
+        risk_level = "MODERATE"
+        risk_color = "#f59e0b"
+        risk_emoji = "🟡"
+    else:
+        risk_level = "HIGH"
+        risk_color = "#ef4444"
+        risk_emoji = "🔴"
+    
+    st.markdown("### 📈 Key Metrics")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        st.metric("Total Incidents", total_incidents)
+    with col2:
+        st.metric("Critical", critical_count, delta=f"{(critical_count/total_incidents*100):.0f}%" if total_incidents > 0 else "0%")
+    with col3:
+        st.metric("Avg Severity", f"{avg_severity:.1f}/5")
+    with col4:
+        st.metric("Last 7 Days", recent_incidents)
+    with col5:
+        st.markdown(f"<div style='text-align: center; padding: 1rem; background: white; border-radius: 8px; border: 2px solid {risk_color};'>"
+                   f"<div style='font-size: 2rem;'>{risk_emoji}</div>"
+                   f"<div style='font-size: 0.875rem; color: #64748b; font-weight: 600;'>RISK LEVEL</div>"
+                   f"<div style='font-size: 1.5rem; font-weight: 700; color: {risk_color};'>{risk_level}</div>"
+                   f"<div style='font-size: 0.75rem; color: #64748b;'>{risk_score}/100</div>"
+                   f"</div>", unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.markdown("### 📊 Visual Summary")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### Daily Trend (Last 30 Days)")
+        if not full_df.empty:
+            thirty_days_ago = datetime.now() - timedelta(days=30)
+            recent_df = full_df[full_df["date_parsed"] >= thirty_days_ago]
+            daily = recent_df.groupby(recent_df["date_parsed"].dt.date).size().reset_index(name="count")
+            
+            fig = go.Figure()
+            fig.add_trace(go.Bar(x=daily["date_parsed"], y=daily["count"], marker=dict(color='#334155')))
+            fig.update_layout(height=250, showlegend=False, plot_bgcolor='white', paper_bgcolor='white',
+                            margin=dict(l=20, r=20, t=20, b=20))
+            st.plotly_chart(fig, use_container_width=True)
+    
+    with col2:
+        st.markdown("#### Top 5 Behaviours")
+        if not full_df.empty and "behaviour_type" in full_df.columns:
+            beh_counts = full_df["behaviour_type"].value_counts().head(5)
+            fig = go.Figure()
+            fig.add_trace(go.Bar(y=beh_counts.index, x=beh_counts.values, orientation='h', marker=dict(color='#475569')))
+            fig.update_layout(height=250, showlegend=False, plot_bgcolor='white', paper_bgcolor='white',
+                            margin=dict(l=20, r=20, t=20, b=20))
+            st.plotly_chart(fig, use_container_width=True)
+    
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### 🎯 Key Patterns")
+        if not full_df.empty:
+            top_beh = full_df["behaviour_type"].mode()[0] if "behaviour_type" in full_df.columns else "Unknown"
+            top_ant = full_df["antecedent"].mode()[0] if "antecedent" in full_df.columns else "Unknown"
+            top_loc = full_df["location"].mode()[0] if "location" in full_df.columns else "Unknown"
+            top_session = full_df["session"].mode()[0] if "session" in full_df.columns else "Unknown"
+            st.markdown(f"- **Primary Behaviour:** {top_beh}\n- **Main Trigger:** {top_ant}\n- **Hotspot:** {top_loc}\n- **Peak Time:** {top_session}")
+    
+    with col2:
+        st.markdown("### 📋 Recent Activity")
+        if not full_df.empty:
+            recent_5 = full_df.tail(5).sort_values("date_parsed", ascending=False)
+            for _, inc in recent_5.iterrows():
+                date_str = inc["date_parsed"].strftime("%d/%m")
+                sev = inc.get("severity", "?")
+                emoji = "🔴" if inc.get("incident_type") == "Critical" else "🟡" if sev >= 3 else "🟢"
+                st.markdown(f"{emoji} **{date_str}** - Sev {sev}")
+    
+    st.markdown("---")
+    st.markdown("### 💡 Quick Recommendations")
+    
+    if risk_level == "HIGH":
+        st.error("**⚠️ HIGH RISK**\n- Schedule urgent case review\n- Update safety plan\n- Daily check-ins")
+    elif risk_level == "MODERATE":
+        st.warning("**⚠️ MODERATE RISK**\n- Weekly review\n- Enhanced monitoring\n- Proactive strategies")
+    else:
+        st.success("**✅ LOW RISK**\n- Maintain supports\n- Continue monitoring\n- Celebrate progress")
+    
+    st.markdown("---")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("📝 Log New Incident", type="primary", use_container_width=True, key="dash_log_btn"):
+            go_to("incident_log", selected_student_id=student_id)
+    with col2:
+        if st.button("📈 Full Analysis", use_container_width=True, key="dash_analysis_btn"):
+            go_to("student_analysis", selected_student_id=student_id)
+    with col3:
+        if st.button("⬅ Back", use_container_width=True, key="dash_back_btn"):
+            go_to("program_students", selected_program=student["program"])
+
+
+
 def render_admin_portal():
     """Admin portal for managing students and placement dates"""
     if st.session_state.current_user.get("role") != "ADM":
@@ -3660,50 +2854,76 @@ def render_admin_portal():
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
-                    new_first_name = st.text_input("First Name *", placeholder="John")
-                    new_last_name = st.text_input("Last Name *", placeholder="Smith")
+                    new_name = st.text_input("Student Name *", placeholder="First L.")
+                    new_grade = st.selectbox("Grade *", ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"])
                 
                 with col2:
-                    new_grade = st.selectbox("Grade *", ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"])
                     new_edid = st.text_input("EDID *", placeholder="ED123456")
+                    new_dob = st.date_input("Date of Birth *", value=date(2015, 1, 1))
                 
                 with col3:
-                    new_dob = st.date_input("Date of Birth *", value=date(2015, 1, 1), format="DD/MM/YYYY")
                     new_program = st.selectbox("Program *", ["JP", "PY", "SY"])
+                    new_placement_start = st.date_input("Placement Start Date *", value=date.today())
                 
                 with col4:
-                    new_placement_start = st.date_input("Placement Start Date *", value=date.today(), format="DD/MM/YYYY")
-                    new_placement_end = st.date_input("Placement End Date (Optional)", value=None, format="DD/MM/YYYY")
+                    st.write("")  # Spacer
+                    new_placement_end = st.date_input("Placement End Date (Optional)", value=None)
                 
                 submitted = st.form_submit_button("Add Student", type="primary")
                 
-                if submitted:
-                    if new_first_name and new_last_name and new_grade and new_program and new_edid:
-                        full_name = f"{new_first_name} {new_last_name}"
-                        new_student = {
-                            "id": f"stu_{uuid.uuid4().hex[:8]}",
-                            "first_name": new_first_name.strip(),
-                            "last_name": new_last_name.strip(),
-                            "name": full_name.strip(),
-                            "grade": new_grade,
-                            "dob": new_dob.isoformat(),
-                            "edid": new_edid,
-                            "program": new_program,
-                            "placement_start": new_placement_start.isoformat(),
-                            "placement_end": new_placement_end.isoformat() if new_placement_end else None
-                        }
-                        
-                        # SAVE TO DATABASE FIRST
-                        if save_student_to_db(new_student):
-                            st.session_state.students.append(new_student)
-                            st.success(f"✅ Added {full_name} (EDID: {new_edid}) to {PROGRAM_NAMES[new_program]}")
-                            st.rerun()
-                        else:
-                            st.error("❌ Failed to save student to database")
-                    else:
-                        st.error("Please complete all required fields (First Name, Last Name, Grade, EDID, Program)")
-        
-        st.markdown("---")
+              # FIXED INCIDENT LOGGING WITH DATABASE PERSISTENCE
+# Replace the incident submission section in render_incident_log_page()
+
+# Find this section (around line 1550-1620 in your file):
+# The part that starts with: if submitted:
+
+# REPLACE WITH THIS:
+
+    if submitted:
+        if not location or not behaviour or not antecedent or not interventions:
+            st.error("Please complete all required fields marked with *")
+        else:
+            new_id = str(uuid.uuid4())
+            is_critical = (severity >= 3) or manual_critical
+            
+            # Generate AI hypothesis
+            hyp_ai = generate_hypothesis_ai(antecedent, behaviour, "")
+            hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
+            
+            rec = {
+                "id": new_id, 
+                "student_id": student_id, 
+                "student_name": student["name"],
+                "date": inc_date.isoformat(), 
+                "time": inc_time.strftime("%H:%M:%S"),
+                "day": inc_date.strftime("%A"), 
+                "session": get_session_from_time(inc_time),
+                "location": location, 
+                "behaviour_type": behaviour, 
+                "antecedent": antecedent,
+                "intervention": interventions,  # Save as list
+                "severity": severity,
+                "reported_by": st.session_state.current_user["id"],  # Save staff ID
+                "duration_minutes": duration, 
+                "description": description or "", 
+                "is_critical": is_critical,
+                "hypothesis_function": hyp_ai['function'],
+                "hypothesis_item": hyp_ai['item']
+            }
+            
+            # SAVE TO DATABASE FIRST
+            if save_incident_to_db(rec):
+                # Then add to session state
+                st.session_state.incidents.append(rec)
+                st.success("✅ Incident logged successfully and saved to database")
+                
+                if is_critical:
+                    st.session_state.current_incident_id = new_id
+                    st.session_state.show_critical_prompt = True
+                    st.session_state.last_incident_info = {"severity": severity, "manual": manual_critical}
+                    st.rerun()
+            else:
+                st.error("❌ Failed to save incident to database. Please try again.")
         
         # EXISTING STUDENTS
         st.markdown("### Current Students")
@@ -3762,42 +2982,23 @@ def render_admin_portal():
                             edit_col1, edit_col2 = st.columns(2)
                             
                             with edit_col1:
-                                edit_first_name = st.text_input("First Name", 
-                                                               value=student.get('first_name', student['name'].split()[0] if student['name'] else ''),
-                                                               key=f"edit_first_{student['id']}")
-                                edit_last_name = st.text_input("Last Name",
-                                                              value=student.get('last_name', ' '.join(student['name'].split()[1:]) if len(student['name'].split()) > 1 else ''),
-                                                              key=f"edit_last_{student['id']}")
                                 # Use existing date or default to today
                                 default_start = datetime.fromisoformat(student['placement_start']).date() if student.get('placement_start') else date.today()
                                 edit_start = st.date_input("Placement Start", 
                                                           value=default_start,
-                                                          key=f"edit_start_{student['id']}",
-                                                          format="DD/MM/YYYY")
+                                                          key=f"edit_start_{student['id']}")
                             
                             with edit_col2:
-                                edit_edid = st.text_input("EDID", value=student.get('edid', ''), key=f"edit_edid_{student['id']}")
-                                edit_grade = st.selectbox("Grade", 
-                                                         ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"],
-                                                         index=["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"].index(student['grade']) if student['grade'] in ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"] else 0,
-                                                         key=f"edit_grade_{student['id']}")
                                 current_end = datetime.fromisoformat(student['placement_end']).date() if student.get('placement_end') else None
                                 edit_end = st.date_input("Placement End (None = Ongoing)",
                                                         value=current_end,
-                                                        key=f"edit_end_{student['id']}",
-                                                        format="DD/MM/YYYY")
+                                                        key=f"edit_end_{student['id']}")
                             
                             col_save, col_cancel = st.columns(2)
                             with col_save:
                                 if st.form_submit_button("Save Changes", type="primary"):
-                                    student['first_name'] = edit_first_name.strip()
-                                    student['last_name'] = edit_last_name.strip()
-                                    student['name'] = f"{edit_first_name} {edit_last_name}".strip()
-                                    student['edid'] = edit_edid
-                                    student['grade'] = edit_grade
                                     student['placement_start'] = edit_start.isoformat()
                                     student['placement_end'] = edit_end.isoformat() if edit_end else None
-                                    save_student_to_db(student)
                                     st.session_state.editing_student = None
                                     st.success("✅ Updated")
                                     st.rerun()
@@ -3846,8 +3047,7 @@ def render_admin_portal():
                 col1, col2 = st.columns(2)
                 
                 with col1:
-                    staff_first_name = st.text_input("First Name *", placeholder="Jane")
-                    staff_last_name = st.text_input("Last Name *", placeholder="Smith")
+                    staff_name = st.text_input("Full Name *", placeholder="Jane Smith")
                     staff_email = st.text_input("Email Address *", placeholder="jane.smith@school.edu.au", 
                                                help="Will be used as username and for critical incident notifications")
                     staff_password = st.text_input("Initial Password *", type="password", value="demo123")
@@ -3864,17 +3064,14 @@ def render_admin_portal():
                 submit_staff = st.form_submit_button("Add Staff Member", type="primary")
                 
                 if submit_staff:
-                    if staff_first_name and staff_last_name and staff_email and staff_password and staff_role:
-                        staff_full_name = f"{staff_first_name} {staff_last_name}"
+                    if staff_name and staff_email and staff_password and staff_role:
                         # Check if email already exists
                         if any(s.get("email", "").lower() == staff_email.lower() for s in st.session_state.staff):
                             st.error(f"❌ Email {staff_email} already exists")
                         else:
                             new_staff = {
                                 "id": f"staff_{uuid.uuid4().hex[:8]}",
-                                "first_name": staff_first_name.strip(),
-                                "last_name": staff_last_name.strip(),
-                                "name": staff_full_name.strip(),
+                                "name": staff_name,
                                 "email": staff_email.lower().strip(),
                                 "password": staff_password,
                                 "role": staff_role,
@@ -3887,13 +3084,11 @@ def render_admin_portal():
                             # Save to database first
                             if save_staff_to_db(new_staff):
                                 st.session_state.staff.append(new_staff)
-                                st.success(f"✅ Added {staff_full_name} ({staff_email}) to database")
+                                st.success(f"✅ Added {staff_name} ({staff_email}) to database")
                                 st.rerun()
                             else:
                                 st.error("❌ Failed to save staff member to database")
-                    else:
-                        st.error("Please complete all required fields (First Name, Last Name, Email, Password, Role)")
-    
+        
         st.markdown("---")
         
         # EXISTING STAFF
@@ -3938,282 +3133,7 @@ def render_admin_portal():
                             if st.button("✏️", key=f"edit_staff_{staff['id']}", help="Edit staff"):
                                 st.session_state.editing_staff = staff['id']
                                 st.rerun()
-                        # ==================================================================
-def render_student_dashboard():
-    """Quick visual dashboard for student overview"""
-    student_id = st.session_state.get("selected_student_id")
-    student = get_student(student_id)
-    if not student:
-        st.error("No student selected")
-        return
-    
-    st.markdown(f"## 📊 Dashboard — {student['name']}")
-    
-    # Navigation
-    col1, col2, col3 = st.columns([2, 1, 1])
-    with col1:
-        if st.button("⬅ Back to Students", key="back_dash"):
-            go_to("program_students", selected_program=student["program"])
-    with col2:
-        if st.button("📝 Log Incident", key="log_dash"):
-            go_to("incident_log", selected_student_id=student_id)
-    with col3:
-        if st.button("📈 Full Analysis", key="analysis_dash"):
-            go_to("student_analysis", selected_student_id=student_id)
-    
-    st.markdown("---")
-    
-    # Get data
-    incidents = [i for i in st.session_state.incidents if i["student_id"] == student_id]
-    critical = [c for c in st.session_state.critical_incidents if c["student_id"] == student_id]
-    
-    if not incidents and not critical:
-        st.info("📋 No incident data yet. Click 'Log Incident' to start tracking.")
-        return
-    
-    # Prepare dataframe
-    quick_df = pd.DataFrame(incidents) if incidents else pd.DataFrame()
-    crit_df = pd.DataFrame(critical) if critical else pd.DataFrame()
-    
-    if not quick_df.empty:
-        quick_df["incident_type"] = "Quick"
-        quick_df["date_parsed"] = pd.to_datetime(quick_df["date"])
-    
-    if not crit_df.empty:
-        crit_df["incident_type"] = "Critical"
-        crit_df["date_parsed"] = pd.to_datetime(crit_df.get("created_at", datetime.now().isoformat()))
-        crit_df["severity"] = 5
-    
-    full_df = pd.concat([quick_df, crit_df], ignore_index=True).sort_values("date_parsed") if not quick_df.empty or not crit_df.empty else pd.DataFrame()
-    
-    # Calculate metrics
-    total_incidents = len(full_df)
-    critical_count = len(full_df[full_df["incident_type"] == "Critical"])
-    avg_severity = full_df["severity"].mean() if "severity" in full_df.columns else 0
-    
-    # Last 7 days activity
-    week_ago = datetime.now() - timedelta(days=7)
-    recent_incidents = len(full_df[full_df["date_parsed"] >= week_ago]) if not full_df.empty else 0
-    
-    # Risk calculation
-    risk_score = min(100, int(
-        (recent_incidents / 7 * 15) +
-        (avg_severity * 10) +
-        (critical_count / max(total_incidents, 1) * 40)
-    ))
-    
-    if risk_score < 30:
-        risk_level = "LOW"
-        risk_color = "#10b981"
-        risk_emoji = "🟢"
-    elif risk_score < 60:
-        risk_level = "MODERATE"
-        risk_color = "#f59e0b"
-        risk_emoji = "🟡"
-    else:
-        risk_level = "HIGH"
-        risk_color = "#ef4444"
-        risk_emoji = "🔴"
-    
-    # METRICS ROW
-    st.markdown("### 📈 Key Metrics")
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        st.metric("Total Incidents", total_incidents)
-    with col2:
-        st.metric("Critical", critical_count, delta=f"{(critical_count/total_incidents*100):.0f}%" if total_incidents > 0 else "0%")
-    with col3:
-        st.metric("Avg Severity", f"{avg_severity:.1f}/5")
-    with col4:
-        st.metric("Last 7 Days", recent_incidents)
-    with col5:
-        st.markdown(f"<div style='text-align: center; padding: 1rem; background: white; border-radius: 8px; border: 2px solid {risk_color};'>"
-                   f"<div style='font-size: 2rem;'>{risk_emoji}</div>"
-                   f"<div style='font-size: 0.875rem; color: #64748b; font-weight: 600;'>RISK LEVEL</div>"
-                   f"<div style='font-size: 1.5rem; font-weight: 700; color: {risk_color};'>{risk_level}</div>"
-                   f"<div style='font-size: 0.75rem; color: #64748b;'>{risk_score}/100</div>"
-                   f"</div>", unsafe_allow_html=True)
-    
-    st.markdown("---")
-    
-    # VISUAL SUMMARY ROW
-    st.markdown("### 📊 Visual Summary")
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("#### Daily Trend (Last 30 Days)")
-        if not full_df.empty:
-            thirty_days_ago = datetime.now() - timedelta(days=30)
-            recent_df = full_df[full_df["date_parsed"] >= thirty_days_ago]
-            daily = recent_df.groupby(recent_df["date_parsed"].dt.date).size().reset_index(name="count")
-            
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
-                x=daily["date_parsed"],
-                y=daily["count"],
-                marker=dict(color='#334155'),
-                text=daily["count"],
-                textposition='outside'
-            ))
-            fig.update_layout(
-                height=250,
-                showlegend=False,
-                plot_bgcolor='white',
-                paper_bgcolor='white',
-                margin=dict(l=20, r=20, t=20, b=20),
-                xaxis=dict(showgrid=False),
-                yaxis=dict(showgrid=True, gridcolor='#e2e8f0')
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("Not enough data")
-    
-    with col2:
-        st.markdown("#### Top 5 Behaviours")
-        if not full_df.empty and "behaviour_type" in full_df.columns:
-            beh_counts = full_df["behaviour_type"].value_counts().head(5)
-            fig = go.Figure()
-            fig.add_trace(go.Bar(
-                y=beh_counts.index,
-                x=beh_counts.values,
-                orientation='h',
-                marker=dict(color='#475569'),
-                text=beh_counts.values,
-                textposition='outside'
-            ))
-            fig.update_layout(
-                height=250,
-                showlegend=False,
-                plot_bgcolor='white',
-                paper_bgcolor='white',
-                margin=dict(l=20, r=20, t=20, b=20),
-                xaxis=dict(showgrid=True, gridcolor='#e2e8f0'),
-                yaxis=dict(showgrid=False)
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        else:
-            st.info("Not enough data")
-    
-    st.markdown("---")
-    
-    # INSIGHTS ROW
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.markdown("### 🎯 Key Patterns")
-        if not full_df.empty:
-            top_beh = full_df["behaviour_type"].mode()[0] if "behaviour_type" in full_df.columns else "Unknown"
-            top_ant = full_df["antecedent"].mode()[0] if "antecedent" in full_df.columns else "Unknown"
-            top_loc = full_df["location"].mode()[0] if "location" in full_df.columns else "Unknown"
-            top_session = full_df["session"].mode()[0] if "session" in full_df.columns else "Unknown"
-            
-            st.markdown(f"""
-            - **Primary Behaviour:** {top_beh}
-            - **Main Trigger:** {top_ant}
-            - **Hotspot Location:** {top_loc}
-            - **Peak Time:** {top_session}
-            """)
-        else:
-            st.info("Collecting data...")
-    
-    with col2:
-        st.markdown("### 📋 Recent Activity (Last 5)")
-        if not full_df.empty:
-            recent_5 = full_df.tail(5).sort_values("date_parsed", ascending=False)
-            for _, inc in recent_5.iterrows():
-                date_str = inc["date_parsed"].strftime("%d/%m")
-                sev = inc.get("severity", "?")
-                inc_type = inc.get("incident_type", "Quick")
-                emoji = "🔴" if inc_type == "Critical" else "🟡" if sev >= 3 else "🟢"
-                st.markdown(f"{emoji} **{date_str}** - Sev {sev} - {inc.get('behaviour_type', 'N/A')}")
-        else:
-            st.info("No recent incidents")
-    
-    st.markdown("---")
-    
-    # RECOMMENDATIONS
-    st.markdown("### 💡 Quick Recommendations")
-    
-    if risk_level == "HIGH":
-        st.error(f"""
-        **⚠️ HIGH RISK - Immediate Action Required**
-        
-        - Schedule urgent case review meeting
-        - Review and update safety plan
-        - Consider additional support allocation
-        - Daily check-ins with key adult
-        """)
-    elif risk_level == "MODERATE":
-        st.warning(f"""
-        **⚠️ MODERATE RISK - Enhanced Monitoring**
-        
-        - Weekly progress review
-        - Proactive regulation strategies before peak times
-        - Strengthen Berry Street Body domain supports
-        - Monitor for escalation patterns
-        """)
-    else:
-        st.success(f"""
-        **✅ LOW RISK - Maintain Current Supports**
-        
-        - Current strategies are effective
-        - Continue monitoring trends
-        - Celebrate progress with student
-        - Maintain consistent routines
-        """)
-    
-    st.markdown("---")
-    
-    # FOOTER ACTIONS
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if st.button("📝 Log New Incident", type="primary", use_container_width=True, key="dash_log_bottom"):
-            go_to("incident_log", selected_student_id=student_id)
-    with col2:
-        if st.button("📈 View Full Analysis", use_container_width=True, key="dash_analysis_bottom"):
-            go_to("student_analysis", selected_student_id=student_id)
-    with col3:
-        if st.button("⬅ Back to Students", use_container_width=True, key="dash_back_bottom"):
-            go_to("program_students", selected_program=student["program"])
-
-
-# ====================
-# CHANGE 4: In main() function (around line 4030)
-# ====================
-# FIND:
-    elif page == "student_analysis": render_student_analysis_page()
-    elif page == "admin_portal": render_admin_portal()
-
-# REPLACE WITH:
-    elif page == "student_analysis": render_student_analysis_page()
-    elif page == "student_dashboard": render_student_dashboard()
-    elif page == "admin_portal": render_admin_portal()
-
-
-# ====================================================================
-# SUMMARY OF CHANGES
-# ====================================================================
-# 1. Added "student_dashboard" to VALID_PAGES list
-# 2. Added Dashboard button to program students page (before Log and Analysis buttons)
-# 3. Added complete render_student_dashboard() function
-# 4. Added routing in main() to call the dashboard
-#
-# After these changes, each student will have a Dashboard button that shows:
-# - Risk level indicator (traffic light: green/yellow/red)
-# - Key metrics (total, critical, average severity, last 7 days)
-# - Visual charts (daily trend, top behaviors)
-# - Key patterns (behavior, trigger, location, time)
-# - Recent activity (last 5 incidents)
-# - Recommendations based on risk level
-
                         
-# COMPLETE STAFF EDITING SECTION - REPLACE LINES ~3940-3980
-# ==================================================================
-# This goes INSIDE the staff management loop in render_admin_portal()
-# Find where it says "# EDIT STAFF" and replace that entire section
-# ==================================================================
-
                         # EDIT STAFF
                         if st.session_state.get("editing_staff") == staff['id']:
                             with st.expander("✏️ Edit Staff Details", expanded=True):
@@ -4229,19 +3149,11 @@ def render_student_dashboard():
                                         edit_role = st.selectbox("Role", ["TSS", "Teacher", "Leader", "ADM"],
                                                                 index=["TSS", "Teacher", "Leader", "ADM"].index(staff['role']),
                                                                 key=f"edit_staff_role_{staff['id']}")
-                                        
-                                        # Fixed program selection - no more error!
-                                        current_program = staff.get('program', 'All Programs')
-                                        if current_program is None:
-                                            current_program = "All Programs"
-                                        program_list = ["JP", "PY", "SY", "All Programs"]
-                                        try:
-                                            program_index = program_list.index(current_program)
-                                        except ValueError:
-                                            program_index = 3
-                                        
-                                        edit_program = st.selectbox("Program", program_list,
-                                                                   index=program_index,
+                                        edit_program = st.selectbox("Program", ["JP", "PY", "SY", "All Programs"],
+                                                                   index=["JP", "PY", "SY", "All Programs"].index(
+                                                                       PROGRAM_NAMES.get(staff.get('program'), "All Programs") 
+                                                                       if staff.get('program') else "All Programs"
+                                                                   ) if staff.get('program') else 3,
                                                                    key=f"edit_staff_program_{staff['id']}")
                                         edit_receive_emails = st.checkbox("Receive critical incident emails",
                                                                          value=staff.get('receive_critical_emails', True),
@@ -4259,14 +3171,9 @@ def render_student_dashboard():
                                             staff['program'] = edit_program if edit_program != "All Programs" else None
                                             staff['receive_critical_emails'] = edit_receive_emails
                                             staff['notes'] = edit_notes if edit_notes else None
-                                            
-                                            # Save to database
-                                            if save_staff_to_db(staff):
-                                                st.session_state.editing_staff = None
-                                                st.success("✅ Staff member updated")
-                                                st.rerun()
-                                            else:
-                                                st.error("❌ Failed to update staff member")
+                                            st.session_state.editing_staff = None
+                                            st.success("✅ Updated")
+                                            st.rerun()
                                     
                                     with col_cancel:
                                         if st.form_submit_button("❌ Cancel"):
@@ -4276,13 +3183,10 @@ def render_student_dashboard():
                                     with col_delete:
                                         if st.form_submit_button("🗑️ Delete", help="Remove this staff member"):
                                             if staff['role'] != 'ADM' or len([s for s in st.session_state.staff if s.get('role') == 'ADM']) > 1:
-                                                if delete_staff_from_db(staff['id']):
-                                                    st.session_state.staff.remove(staff)
-                                                    st.session_state.editing_staff = None
-                                                    st.success("✅ Staff member removed")
-                                                    st.rerun()
-                                                else:
-                                                    st.error("❌ Failed to delete staff member")
+                                                st.session_state.staff.remove(staff)
+                                                st.session_state.editing_staff = None
+                                                st.success("✅ Staff member removed")
+                                                st.rerun()
                                             else:
                                                 st.error("❌ Cannot delete the last administrator")
         
@@ -4319,6 +3223,7 @@ def main():
     elif page == "incident_log": render_incident_log_page()
     elif page == "critical_incident": render_critical_incident_page()
     elif page == "student_analysis": render_student_analysis_page()
+    elif page == "student_dashboard": render_student_dashboard()
     elif page == "admin_portal": render_admin_portal()
     else: render_landing_page()
 
