@@ -166,7 +166,7 @@ ANTECEDENTS = [
 INTERVENTIONS = ["CPI Supportive stance", "Offered break", "Reduced demand", "Provided choices", 
                 "Removed audience", "Visual supports", "Co-regulation", "Prompted coping skill", "Redirection"]
 LOCATIONS = ["JP Classroom", "PY Classroom", "SY Classroom", "Playground", "Library", "Office", "Student Gate", "Toilets"]
-VALID_PAGES = ["login", "landing", "program_students", "incident_log", "critical_incident", "student_analysis", "admin_portal"]
+VALID_PAGES = ["login", "landing", "program_students", "incident_log", "critical_incident", "student_analysis", "student_dashboard", "admin_portal"]
 
 # AI HYPOTHESIS SYSTEM
 HYPOTHESIS_FUNCTIONS = ["To get", "To avoid"]
@@ -2246,9 +2246,11 @@ def render_program_students_page():
             with col2:
                 st.metric("Incidents", len(stu_incidents))
             with col3:
+                if st.button("📊 Dashboard", key=f"dash_{stu['id']}", use_container_width=True):
+                    go_to("student_dashboard", selected_student_id=stu["id"])
                 if st.button("📝 Log", key=f"log_{stu['id']}", use_container_width=True):
                     go_to("incident_log", selected_student_id=stu["id"])
-                if st.button("📊 Analysis", key=f"ana_{stu['id']}", use_container_width=True):
+                if st.button("📈 Analysis", key=f"ana_{stu['id']}", use_container_width=True):
                     go_to("student_analysis", selected_student_id=stu["id"])
 
 def render_incident_log_page():
@@ -3937,6 +3939,275 @@ def render_admin_portal():
                                 st.session_state.editing_staff = staff['id']
                                 st.rerun()
                         # ==================================================================
+def render_student_dashboard():
+    """Quick visual dashboard for student overview"""
+    student_id = st.session_state.get("selected_student_id")
+    student = get_student(student_id)
+    if not student:
+        st.error("No student selected")
+        return
+    
+    st.markdown(f"## 📊 Dashboard — {student['name']}")
+    
+    # Navigation
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        if st.button("⬅ Back to Students", key="back_dash"):
+            go_to("program_students", selected_program=student["program"])
+    with col2:
+        if st.button("📝 Log Incident", key="log_dash"):
+            go_to("incident_log", selected_student_id=student_id)
+    with col3:
+        if st.button("📈 Full Analysis", key="analysis_dash"):
+            go_to("student_analysis", selected_student_id=student_id)
+    
+    st.markdown("---")
+    
+    # Get data
+    incidents = [i for i in st.session_state.incidents if i["student_id"] == student_id]
+    critical = [c for c in st.session_state.critical_incidents if c["student_id"] == student_id]
+    
+    if not incidents and not critical:
+        st.info("📋 No incident data yet. Click 'Log Incident' to start tracking.")
+        return
+    
+    # Prepare dataframe
+    quick_df = pd.DataFrame(incidents) if incidents else pd.DataFrame()
+    crit_df = pd.DataFrame(critical) if critical else pd.DataFrame()
+    
+    if not quick_df.empty:
+        quick_df["incident_type"] = "Quick"
+        quick_df["date_parsed"] = pd.to_datetime(quick_df["date"])
+    
+    if not crit_df.empty:
+        crit_df["incident_type"] = "Critical"
+        crit_df["date_parsed"] = pd.to_datetime(crit_df.get("created_at", datetime.now().isoformat()))
+        crit_df["severity"] = 5
+    
+    full_df = pd.concat([quick_df, crit_df], ignore_index=True).sort_values("date_parsed") if not quick_df.empty or not crit_df.empty else pd.DataFrame()
+    
+    # Calculate metrics
+    total_incidents = len(full_df)
+    critical_count = len(full_df[full_df["incident_type"] == "Critical"])
+    avg_severity = full_df["severity"].mean() if "severity" in full_df.columns else 0
+    
+    # Last 7 days activity
+    week_ago = datetime.now() - timedelta(days=7)
+    recent_incidents = len(full_df[full_df["date_parsed"] >= week_ago]) if not full_df.empty else 0
+    
+    # Risk calculation
+    risk_score = min(100, int(
+        (recent_incidents / 7 * 15) +
+        (avg_severity * 10) +
+        (critical_count / max(total_incidents, 1) * 40)
+    ))
+    
+    if risk_score < 30:
+        risk_level = "LOW"
+        risk_color = "#10b981"
+        risk_emoji = "🟢"
+    elif risk_score < 60:
+        risk_level = "MODERATE"
+        risk_color = "#f59e0b"
+        risk_emoji = "🟡"
+    else:
+        risk_level = "HIGH"
+        risk_color = "#ef4444"
+        risk_emoji = "🔴"
+    
+    # METRICS ROW
+    st.markdown("### 📈 Key Metrics")
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        st.metric("Total Incidents", total_incidents)
+    with col2:
+        st.metric("Critical", critical_count, delta=f"{(critical_count/total_incidents*100):.0f}%" if total_incidents > 0 else "0%")
+    with col3:
+        st.metric("Avg Severity", f"{avg_severity:.1f}/5")
+    with col4:
+        st.metric("Last 7 Days", recent_incidents)
+    with col5:
+        st.markdown(f"<div style='text-align: center; padding: 1rem; background: white; border-radius: 8px; border: 2px solid {risk_color};'>"
+                   f"<div style='font-size: 2rem;'>{risk_emoji}</div>"
+                   f"<div style='font-size: 0.875rem; color: #64748b; font-weight: 600;'>RISK LEVEL</div>"
+                   f"<div style='font-size: 1.5rem; font-weight: 700; color: {risk_color};'>{risk_level}</div>"
+                   f"<div style='font-size: 0.75rem; color: #64748b;'>{risk_score}/100</div>"
+                   f"</div>", unsafe_allow_html=True)
+    
+    st.markdown("---")
+    
+    # VISUAL SUMMARY ROW
+    st.markdown("### 📊 Visual Summary")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("#### Daily Trend (Last 30 Days)")
+        if not full_df.empty:
+            thirty_days_ago = datetime.now() - timedelta(days=30)
+            recent_df = full_df[full_df["date_parsed"] >= thirty_days_ago]
+            daily = recent_df.groupby(recent_df["date_parsed"].dt.date).size().reset_index(name="count")
+            
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=daily["date_parsed"],
+                y=daily["count"],
+                marker=dict(color='#334155'),
+                text=daily["count"],
+                textposition='outside'
+            ))
+            fig.update_layout(
+                height=250,
+                showlegend=False,
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                margin=dict(l=20, r=20, t=20, b=20),
+                xaxis=dict(showgrid=False),
+                yaxis=dict(showgrid=True, gridcolor='#e2e8f0')
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Not enough data")
+    
+    with col2:
+        st.markdown("#### Top 5 Behaviours")
+        if not full_df.empty and "behaviour_type" in full_df.columns:
+            beh_counts = full_df["behaviour_type"].value_counts().head(5)
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                y=beh_counts.index,
+                x=beh_counts.values,
+                orientation='h',
+                marker=dict(color='#475569'),
+                text=beh_counts.values,
+                textposition='outside'
+            ))
+            fig.update_layout(
+                height=250,
+                showlegend=False,
+                plot_bgcolor='white',
+                paper_bgcolor='white',
+                margin=dict(l=20, r=20, t=20, b=20),
+                xaxis=dict(showgrid=True, gridcolor='#e2e8f0'),
+                yaxis=dict(showgrid=False)
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Not enough data")
+    
+    st.markdown("---")
+    
+    # INSIGHTS ROW
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### 🎯 Key Patterns")
+        if not full_df.empty:
+            top_beh = full_df["behaviour_type"].mode()[0] if "behaviour_type" in full_df.columns else "Unknown"
+            top_ant = full_df["antecedent"].mode()[0] if "antecedent" in full_df.columns else "Unknown"
+            top_loc = full_df["location"].mode()[0] if "location" in full_df.columns else "Unknown"
+            top_session = full_df["session"].mode()[0] if "session" in full_df.columns else "Unknown"
+            
+            st.markdown(f"""
+            - **Primary Behaviour:** {top_beh}
+            - **Main Trigger:** {top_ant}
+            - **Hotspot Location:** {top_loc}
+            - **Peak Time:** {top_session}
+            """)
+        else:
+            st.info("Collecting data...")
+    
+    with col2:
+        st.markdown("### 📋 Recent Activity (Last 5)")
+        if not full_df.empty:
+            recent_5 = full_df.tail(5).sort_values("date_parsed", ascending=False)
+            for _, inc in recent_5.iterrows():
+                date_str = inc["date_parsed"].strftime("%d/%m")
+                sev = inc.get("severity", "?")
+                inc_type = inc.get("incident_type", "Quick")
+                emoji = "🔴" if inc_type == "Critical" else "🟡" if sev >= 3 else "🟢"
+                st.markdown(f"{emoji} **{date_str}** - Sev {sev} - {inc.get('behaviour_type', 'N/A')}")
+        else:
+            st.info("No recent incidents")
+    
+    st.markdown("---")
+    
+    # RECOMMENDATIONS
+    st.markdown("### 💡 Quick Recommendations")
+    
+    if risk_level == "HIGH":
+        st.error(f"""
+        **⚠️ HIGH RISK - Immediate Action Required**
+        
+        - Schedule urgent case review meeting
+        - Review and update safety plan
+        - Consider additional support allocation
+        - Daily check-ins with key adult
+        """)
+    elif risk_level == "MODERATE":
+        st.warning(f"""
+        **⚠️ MODERATE RISK - Enhanced Monitoring**
+        
+        - Weekly progress review
+        - Proactive regulation strategies before peak times
+        - Strengthen Berry Street Body domain supports
+        - Monitor for escalation patterns
+        """)
+    else:
+        st.success(f"""
+        **✅ LOW RISK - Maintain Current Supports**
+        
+        - Current strategies are effective
+        - Continue monitoring trends
+        - Celebrate progress with student
+        - Maintain consistent routines
+        """)
+    
+    st.markdown("---")
+    
+    # FOOTER ACTIONS
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("📝 Log New Incident", type="primary", use_container_width=True, key="dash_log_bottom"):
+            go_to("incident_log", selected_student_id=student_id)
+    with col2:
+        if st.button("📈 View Full Analysis", use_container_width=True, key="dash_analysis_bottom"):
+            go_to("student_analysis", selected_student_id=student_id)
+    with col3:
+        if st.button("⬅ Back to Students", use_container_width=True, key="dash_back_bottom"):
+            go_to("program_students", selected_program=student["program"])
+
+
+# ====================
+# CHANGE 4: In main() function (around line 4030)
+# ====================
+# FIND:
+    elif page == "student_analysis": render_student_analysis_page()
+    elif page == "admin_portal": render_admin_portal()
+
+# REPLACE WITH:
+    elif page == "student_analysis": render_student_analysis_page()
+    elif page == "student_dashboard": render_student_dashboard()
+    elif page == "admin_portal": render_admin_portal()
+
+
+# ====================================================================
+# SUMMARY OF CHANGES
+# ====================================================================
+# 1. Added "student_dashboard" to VALID_PAGES list
+# 2. Added Dashboard button to program students page (before Log and Analysis buttons)
+# 3. Added complete render_student_dashboard() function
+# 4. Added routing in main() to call the dashboard
+#
+# After these changes, each student will have a Dashboard button that shows:
+# - Risk level indicator (traffic light: green/yellow/red)
+# - Key metrics (total, critical, average severity, last 7 days)
+# - Visual charts (daily trend, top behaviors)
+# - Key patterns (behavior, trigger, location, time)
+# - Recent activity (last 5 incidents)
+# - Recommendations based on risk level
+
+                        
 # COMPLETE STAFF EDITING SECTION - REPLACE LINES ~3940-3980
 # ==================================================================
 # This goes INSIDE the staff management loop in render_admin_portal()
