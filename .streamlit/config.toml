@@ -1,0 +1,15 @@
+[server]
+   fileWatcherType = "none"
+```
+
+5. **Scroll down and click "Commit changes"**
+
+---
+
+## 📂 **Your repo structure should look like:**
+```
+your-repo/
+├── app_SUPABASE_SECURE.py
+├── .streamlit/
+│   ├── secrets.toml (already exists - has your Supabase credentials)
+│   └── config.toml (NEW - add this now)
