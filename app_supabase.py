@@ -332,96 +332,42 @@ def format_hypothesis(hyp):
         return "Unknown"
 
 def show_severity_guide():
-    """Enhanced Behaviour Severity Continuum - Expander version"""
+    """Behaviour Severity Continuum using Streamlit components"""
     with st.expander("📊 Behaviour Severity Continuum Guide", expanded=False):
-        st.markdown("""
-        <div style='background: white; padding: 1rem; border-radius: 8px;'>
-            <div style='display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;'>
-                
-                <div style='background: #81b29a; padding: 1rem 0.6rem; border-right: 2px solid white;'>
-                    <div style='text-align: center; margin-bottom: 0.8rem;'>
-                        <div style='color: white; font-weight: 700; font-size: 1rem;'>Level 1</div>
-                        <div style='color: white; font-weight: 600; font-size: 0.8rem;'>Low Level / Engaged</div>
-                    </div>
-                    <div style='background: rgba(255,255,255,0.2); padding: 0.6rem; border-radius: 4px; margin-bottom: 0.6rem;'>
-                        <div style='color: white; font-weight: 600; font-size: 0.7rem;'>Examples:</div>
-                        <ul style='color: white; font-size: 0.65rem; margin: 0.2rem 0 0 1rem; padding: 0; line-height: 1.4;'>
-                            <li>Following instructions</li>
-                            <li>Minor defiance</li>
-                            <li>Answering back</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div style='background: #f4d35e; padding: 1rem 0.6rem; border-right: 2px solid white;'>
-                    <div style='text-align: center; margin-bottom: 0.8rem;'>
-                        <div style='color: #2c2c2c; font-weight: 700; font-size: 1rem;'>Level 2</div>
-                        <div style='color: #2c2c2c; font-weight: 600; font-size: 0.8rem;'>Escalating</div>
-                    </div>
-                    <div style='background: rgba(255,255,255,0.3); padding: 0.6rem; border-radius: 4px;'>
-                        <div style='color: #2c2c2c; font-weight: 600; font-size: 0.7rem;'>Examples:</div>
-                        <ul style='color: #2c2c2c; font-size: 0.65rem; margin: 0.2rem 0 0 1rem; padding: 0; line-height: 1.4;'>
-                            <li>Raised voice</li>
-                            <li>Arguing</li>
-                            <li>Frustration</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div style='background: #ee8434; padding: 1rem 0.6rem; border-right: 2px solid white;'>
-                    <div style='text-align: center; margin-bottom: 0.8rem;'>
-                        <div style='color: white; font-weight: 700; font-size: 1rem;'>Level 3</div>
-                        <div style='color: white; font-weight: 600; font-size: 0.8rem;'>High Risk</div>
-                    </div>
-                    <div style='background: rgba(255,255,255,0.2); padding: 0.6rem; border-radius: 4px;'>
-                        <div style='color: white; font-weight: 600; font-size: 0.7rem;'>Examples:</div>
-                        <ul style='color: white; font-size: 0.65rem; margin: 0.2rem 0 0 1rem; padding: 0; line-height: 1.4;'>
-                            <li>Yelling, swearing</li>
-                            <li>Throwing items</li>
-                            <li>Property damage</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div style='background: #c9555e; padding: 1rem 0.6rem; border-right: 2px solid white;'>
-                    <div style='text-align: center; margin-bottom: 0.8rem;'>
-                        <div style='color: white; font-weight: 700; font-size: 1rem;'>Level 4</div>
-                        <div style='color: white; font-weight: 600; font-size: 0.8rem;'>Dangerous</div>
-                    </div>
-                    <div style='background: rgba(255,255,255,0.2); padding: 0.6rem; border-radius: 4px;'>
-                        <div style='color: white; font-weight: 600; font-size: 0.7rem;'>Examples:</div>
-                        <ul style='color: white; font-size: 0.65rem; margin: 0.2rem 0 0 1rem; padding: 0; line-height: 1.4;'>
-                            <li>Attempts to hit/kick</li>
-                            <li>Throwing dangerous objects</li>
-                            <li>Threats of violence</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div style='background: #7d2e2e; padding: 1rem 0.6rem;'>
-                    <div style='text-align: center; margin-bottom: 0.8rem;'>
-                        <div style='color: white; font-weight: 700; font-size: 1rem;'>Crisis</div>
-                        <div style='color: white; font-weight: 600; font-size: 0.8rem;'>Crisis Situation</div>
-                    </div>
-                    <div style='background: rgba(255,255,255,0.15); padding: 0.6rem; border-radius: 4px;'>
-                        <div style='color: white; font-weight: 600; font-size: 0.7rem;'>Examples:</div>
-                        <ul style='color: white; font-size: 0.65rem; margin: 0.2rem 0 0 1rem; padding: 0; line-height: 1.4;'>
-                            <li>Physical violence causing injury</li>
-                            <li>Severe self-harm</li>
-                            <li>Use of weapons</li>
-                        </ul>
-                    </div>
-                </div>
-                
-            </div>
-            
-            <div style='margin-top: 1rem; padding: 0.8rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #f59e0b;'>
-                <div style='color: #92400e; font-weight: 700; font-size: 0.85rem;'>
-                    ⚠️ Level 3 or above requires a Critical Incident ABCH Form
-                </div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        
+        col1, col2, col3, col4, col5 = st.columns(5)
+        
+        with col1:
+            st.markdown("### 🟢 Level 1")
+            st.caption("**Low Level / Engaged**")
+            st.markdown("**Examples:**")
+            st.markdown("- Following instructions\n- Minor defiance\n- Answering back\n- Mumbling\n- Attention seeking")
+        
+        with col2:
+            st.markdown("### 🟡 Level 2")
+            st.caption("**Escalating**")
+            st.markdown("**Examples:**")
+            st.markdown("- Raised voice\n- Arguing\n- Frustration\n- Crying\n- Pacing")
+        
+        with col3:
+            st.markdown("### 🟠 Level 3")
+            st.caption("**High Risk**")
+            st.markdown("**Examples:**")
+            st.markdown("- Yelling, swearing\n- Throwing items\n- Property damage\n- Attempting to run")
+        
+        with col4:
+            st.markdown("### 🔴 Level 4")
+            st.caption("**Dangerous**")
+            st.markdown("**Examples:**")
+            st.markdown("- Attempts to hit/kick\n- Dangerous objects\n- Threats of violence\n- Absconding")
+        
+        with col5:
+            st.markdown("### ⚫ Crisis")
+            st.caption("**Crisis Situation**")
+            st.markdown("**Examples:**")
+            st.markdown("- Physical violence\n- Severe self-harm\n- Use of weapons\n- Loss of control")
+        
+        st.warning("⚠️ **Level 3 or above requires a Critical Incident ABCH Form**")
 def send_critical_incident_email(incident_data, student, staff_email, leader_email, admin_email):
     """Send email notification to all parties"""
     st.info(f"""📧 **Email Notification Sent**
