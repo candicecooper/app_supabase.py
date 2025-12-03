@@ -332,38 +332,174 @@ def format_hypothesis(hyp):
         return "Unknown"
 
 def show_severity_guide():
-    """Simplified Behaviour Severity Guide - More Reliable"""
-    with st.expander("📊 **Behaviour Severity Guide** (Click to view)", expanded=False):
-        st.markdown("### Behaviour Severity Continuum")
+    """Enhanced Behaviour Severity Continuum matching uploaded image"""
+    st.markdown("""
+    <div style='background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; 
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;'>
         
-        col1, col2, col3, col4, col5 = st.columns(5)
+        <div style='text-align: center; margin-bottom: 1.5rem;'>
+            <h2 style='color: #1a1a1a; font-weight: 700; font-size: 1.8rem; margin: 0;'>
+                Behaviour Severity Continuum
+            </h2>
+        </div>
         
-        with col1:
-            st.markdown("**:green[Level 1 - Low Level/Engaged]**")
-            st.caption("Examples: Following instructions, On task, Minor defiance, Avoiding work")
-            st.caption("Response: Redirect, Give space, Offer choice")
+        <div style='display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;'>
+            
+            <div style='background: #81b29a; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 1</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Low Level /<br>Engaged
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Following instructions</li>
+                        <li>On task</li>
+                        <li>Minor defiance</li>
+                        <li>Avoiding work</li>
+                        <li>Answering back</li>
+                        <li>Mumbling, huffing</li>
+                        <li>Passive peer conflict</li>
+                        <li>Attention seeking</li>
+                    </ul>
+                </div>
+                <div style='background: #6b9b7f; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Redirect / provide options</li>
+                    <li>Give space</li>
+                    <li>Offer choice</li>
+                    <li>Acknowledge concern</li>
+                    <li>Maintain routine</li>
+                    <li>Active listening</li>
+                </ul>
+            </div>
+            
+            <div style='background: #f4d35e; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: #2c2c2c; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 2</div>
+                    <div style='color: #2c2c2c; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Escalating /<br>Dysregulated
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.3); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: #2c2c2c; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: #2c2c2c; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Raised voice</li>
+                        <li>Arguing, blaming</li>
+                        <li>Crying, frustration</li>
+                        <li>Pacing or mild exit attempts</li>
+                        <li>Throwing soft items (not dangerous)</li>
+                    </ul>
+                </div>
+                <div style='background: #d9b84d; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: #2c2c2c; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: #2c2c2c; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Reduce demands</li>
+                    <li>Offer space / movement break</li>
+                    <li>Provide limited choices</li>
+                    <li>Avoid power struggles</li>
+                </ul>
+            </div>
+            
+            <div style='background: #ee8434; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 3</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        High Escalation /<br>Significant Risk
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Yelling, swearing</li>
+                        <li>Slammed doors, hitting walls</li>
+                        <li>Throwing items with possible risk</li>
+                        <li>Attempting to run off</li>
+                        <li>Damaging property</li>
+                    </ul>
+                </div>
+                <div style='background: #d47230; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Increase distance</li>
+                    <li>Notify leadership/support</li>
+                    <li>Remove audience</li>
+                    <li>Complete Critical Incident Form</li>
+                </ul>
+            </div>
+            
+            <div style='background: #c9555e; padding: 1.2rem 0.8rem; border-right: 2px solid white;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Level 4</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Dangerous<br>Behaviour
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.2); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Attempts to hit, kick, grab</li>
+                        <li>Throwing dangerous objects</li>
+                        <li>Threats of violence</li>
+                        <li>Absconding into unsafe situations</li>
+                        <li>Beginning self-harm behaviour</li>
+                    </ul>
+                </div>
+                <div style='background: #b04850; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Evacuate nearby students</li>
+                    <li>Leadership/response team activated</li>
+                    <li>Maintain safety distance</li>
+                </ul>
+            </div>
+            
+            <div style='background: #7d2e2e; padding: 1.2rem 0.8rem;'>
+                <div style='text-align: center; margin-bottom: 1rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 0.3rem;'>Crisis</div>
+                    <div style='color: white; font-weight: 600; font-size: 0.9rem; line-height: 1.3;'>
+                        Crisis<br>Situation
+                    </div>
+                </div>
+                <div style='background: rgba(255,255,255,0.15); padding: 0.8rem; border-radius: 4px; margin-bottom: 0.8rem;'>
+                    <div style='color: white; font-weight: 600; font-size: 0.75rem; margin-bottom: 0.4rem;'>Examples:</div>
+                    <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                        <li>Physical violence causing or likely to cause injury</li>
+                        <li>Severe self-harm</li>
+                        <li>Use of weapons or dangerous items</li>
+                        <li>Full loss of control behaviour</li>
+                    </ul>
+                </div>
+                <div style='background: #5c2323; padding: 0.6rem; border-radius: 4px; margin-bottom: 0.5rem;'>
+                    <div style='color: white; font-weight: 700; font-size: 0.75rem; text-align: center;'>Teacher Priority</div>
+                </div>
+                <ul style='color: white; font-size: 0.7rem; margin: 0; padding-left: 1.2rem; line-height: 1.5;'>
+                    <li>Immediate emergency response</li>
+                    <li>Trained staff to manage situation</li>
+                    <li>Preserve evidence</li>
+                    <li>Complete Critical Incident Form</li>
+                </ul>
+            </div>
+            
+        </div>
         
-        with col2:
-            st.markdown("**:orange[Level 2 - Escalating]**")
-            st.caption("Examples: Raised voice, Arguing, Crying, Pacing")
-            st.caption("Response: Reduce demands, Offer break, Avoid power struggles")
-        
-        with col3:
-            st.markdown("**:red[Level 3 - High Escalation]**")
-            st.caption("Examples: Yelling, Slamming doors, Throwing items, Running off")
-            st.caption("Response: Increase distance, Notify leadership, **Complete Critical Form**")
-        
-        with col4:
-            st.markdown("**:red[Level 4 - Dangerous]**")
-            st.caption("Examples: Attempts to hit/kick, Throwing dangerous objects, Threats")
-            st.caption("Response: Evacuate students, Activate response team")
-        
-        with col5:
-            st.markdown("**:red[Level 5 - Critical]**")
-            st.caption("Examples: Physical violence causing injury, Severe self-harm, Weapons")
-            st.caption("Response: Emergency response, Preserve evidence")
-        
-        st.warning("⚠️ **Level 3 or above** requires a Critical Incident ABCH Form")
+        <div style='margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-radius: 6px; border-left: 4px solid #f59e0b;'>
+            <div style='color: #92400e; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.5rem;'>
+                WARNING: Critical Incident Documentation Required
+            </div>
+            <div style='color: #92400e; font-size: 0.85rem; line-height: 1.5;'>
+                <strong>Level 3 or above</strong> requires a Critical Incident ABCH Form to be completed immediately after the incident is resolved.
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 def send_critical_incident_email(incident_data, student, staff_email, leader_email, admin_email):
     """Send email notification to all parties"""
     st.info(f"""📧 **Email Notification Sent**
@@ -419,7 +555,7 @@ def generate_behaviour_analysis_plan_docx(student, full_df, top_ant, top_beh, to
         # ====================================================================
         
         # TITLE PAGE
-        heading = doc.add_heading('Behaviour Summary', 0)
+        heading = doc.add_heading('Behaviour Analysis Plan', 0)
         for run in heading.runs:
             run.font.color.rgb = GREEN_RGB
             set_arial(run)
@@ -1381,167 +1517,79 @@ def init_state():
     if "abch_rows" not in ss: ss.abch_rows = []
     if "show_critical_prompt" not in ss: ss.show_critical_prompt = False
 
-def check_login_attempts(email: str) -> tuple:
-    """
-    Check if email is locked out due to too many failed attempts.
-    Returns (is_locked, remaining_lockout_time_minutes)
-    """
-    if "login_attempts" not in st.session_state:
-        st.session_state.login_attempts = {}
-    if "lockout_until" not in st.session_state:
-        st.session_state.lockout_until = {}
-    
-    email_lower = email.lower()
-    
-    # Check if account is locked
-    if email_lower in st.session_state.lockout_until:
-        lockout_time = st.session_state.lockout_until[email_lower]
-        if datetime.now() < lockout_time:
-            remaining = (lockout_time - datetime.now()).total_seconds() / 60
-            return True, int(remaining) + 1
-        else:
-            # Lockout expired, reset
-            del st.session_state.lockout_until[email_lower]
-            st.session_state.login_attempts[email_lower] = 0
-    
-    return False, 0
-
-def record_failed_login(email: str):
-    """Record a failed login attempt and lockout if threshold exceeded"""
-    MAX_ATTEMPTS = 5
-    LOCKOUT_MINUTES = 15
-    
-    if "login_attempts" not in st.session_state:
-        st.session_state.login_attempts = {}
-    if "lockout_until" not in st.session_state:
-        st.session_state.lockout_until = {}
-    
-    email_lower = email.lower()
-    
-    # Increment attempts
-    if email_lower not in st.session_state.login_attempts:
-        st.session_state.login_attempts[email_lower] = 0
-    st.session_state.login_attempts[email_lower] += 1
-    
-    # Check if should lock out
-    if st.session_state.login_attempts[email_lower] >= MAX_ATTEMPTS:
-        lockout_until = datetime.now() + timedelta(minutes=LOCKOUT_MINUTES)
-        st.session_state.lockout_until[email_lower] = lockout_until
-        return True  # Account locked
-    
-    return False  # Not locked yet
-
-def reset_login_attempts(email: str):
-    """Reset login attempts after successful login"""
-    email_lower = email.lower()
-    if "login_attempts" in st.session_state and email_lower in st.session_state.login_attempts:
-        del st.session_state.login_attempts[email_lower]
-    if "lockout_until" in st.session_state and email_lower in st.session_state.lockout_until:
-        del st.session_state.lockout_until[email_lower]
-
-def check_session_timeout():
-    """Check if session has timed out due to inactivity"""
-    TIMEOUT_MINUTES = 30
-    
-    if "last_activity" not in st.session_state:
-        st.session_state.last_activity = datetime.now()
-        return False
-    
-    time_inactive = (datetime.now() - st.session_state.last_activity).total_seconds() / 60
-    
-    if time_inactive > TIMEOUT_MINUTES:
-        # Session timed out
-        st.session_state.logged_in = False
-        st.session_state.current_user = None
-        st.session_state.current_page = "login"
-        return True
-    
-    # Update last activity time
-    st.session_state.last_activity = datetime.now()
-    return False
-
-def login_user(email: str, password: str) -> tuple:
-    """
-    Secure login with rate limiting, account lockout, and proper error messages.
-    Returns: (success: bool, error_message: str or None)
-    """
+def login_user(email: str, password: str) -> bool:
+    """Login user with bcrypt password verification"""
     email = (email or "").strip().lower()
     password = (password or "").strip()
     
-    # Validate input
+    st.write(f"🔍 DEBUG: Attempting login with email: '{email}'")
+    st.write(f"🔍 DEBUG: Password length: {len(password)}")
+    st.write(f"🔍 DEBUG: Total staff in memory: {len(st.session_state.staff)}")
+    
     if not email or not password:
-        return False, "Please enter both email and password."
+        st.write("❌ DEBUG: Email or password empty")
+        return False
     
-    # Check for account lockout
-    is_locked, remaining_minutes = check_login_attempts(email)
-    if is_locked:
-        return False, f"Account temporarily locked due to multiple failed attempts. Try again in {remaining_minutes} minutes."
-    
-    # Try to find user and verify password
-    try:
-        for staff in st.session_state.staff:
-            staff_email = staff.get("email", "").lower()
+    for idx, staff in enumerate(st.session_state.staff):
+        staff_email = staff.get("email", "").lower()
+        st.write(f"🔍 DEBUG: Checking staff #{idx}: {staff_email}")
+        
+        if staff_email == email:
+            st.write(f"✅ DEBUG: Email match found!")
+            st.write(f"🔍 DEBUG: Staff has password field: {staff.get('password')}")
+            st.write(f"🔍 DEBUG: Staff has password_hash field: {staff.get('password_hash', '')[:30]}...")
             
-            if staff_email == email:
-                # Found matching email
-                stored_hash = staff.get("password_hash", "")
-                
-                if not stored_hash:
-                    # No hash stored, shouldn't happen in production
-                    record_failed_login(email)
-                    return False, "Invalid email or password."
-                
-                # Verify password against bcrypt hash
-                try:
-                    if isinstance(stored_hash, str):
-                        stored_hash_bytes = stored_hash.encode('utf-8')
-                    else:
-                        stored_hash_bytes = stored_hash
+            # Get the stored hash
+            stored_hash = staff.get("password_hash", "")
+            if not stored_hash:
+                st.write("⚠️ DEBUG: No password_hash found, trying plain password")
+                if staff.get("password") == password:
+                    st.write("✅ DEBUG: Plain password match!")
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
+                else:
+                    st.write(f"❌ DEBUG: Plain password mismatch. Expected: '{staff.get('password')}', Got: '{password}'")
+                    continue
+            
+            # Verify password against bcrypt hash
+            try:
+                if isinstance(stored_hash, str):
+                    stored_hash_bytes = stored_hash.encode('utf-8')
+                else:
+                    stored_hash_bytes = stored_hash
                     
-                    password_bytes = password.encode('utf-8')
-                    
-                    if bcrypt.checkpw(password_bytes, stored_hash_bytes):
-                        # Successful login
-                        reset_login_attempts(email)
+                password_bytes = password.encode('utf-8')
+                
+                st.write(f"🔍 DEBUG: Attempting bcrypt verification...")
+                if bcrypt.checkpw(password_bytes, stored_hash_bytes):
+                    st.write("✅ DEBUG: Bcrypt verification SUCCESS!")
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
+                else:
+                    st.write("❌ DEBUG: Bcrypt verification FAILED")
+                    if staff.get("password") == password:
+                        st.write("✅ DEBUG: Using plain password fallback - LOGIN SUCCESS!")
                         st.session_state.logged_in = True
                         st.session_state.current_user = staff
                         st.session_state.current_page = "landing"
-                        st.session_state.last_activity = datetime.now()
-                        st.session_state.login_time = datetime.now()
-                        return True, None
+                        return True
                     else:
-                        # Wrong password
-                        locked = record_failed_login(email)
-                        if locked:
-                            return False, "Too many failed attempts. Account locked for 15 minutes."
-                        attempts_left = 5 - st.session_state.login_attempts.get(email, 0)
-                        return False, f"Invalid email or password. {attempts_left} attempts remaining."
-                        
-                except Exception as e:
-                    # Bcrypt error - shouldn't happen but handle it
-                    record_failed_login(email)
-                    return False, "Authentication error. Please try again."
-        
-        # No matching email found
-        record_failed_login(email)
-        locked = st.session_state.login_attempts.get(email, 0) >= 5
-        if locked:
-            return False, "Too many failed attempts. Account locked for 15 minutes."
-        return False, "Invalid email or password."
-        
-    except Exception as e:
-        # Catch-all for unexpected errors
-        return False, "Login error. Please try again."
-
-def logout_user():
-    """Securely log out user and clear session data"""
-    st.session_state.logged_in = False
-    st.session_state.current_user = None
-    st.session_state.current_page = "login"
-    st.session_state.last_activity = None
-    st.session_state.login_time = None
-    # Keep login_attempts and lockout_until for security
-
+                        st.write(f"❌ DEBUG: Plain password mismatch")
+            except Exception as e:
+                st.write(f"⚠️ DEBUG: Bcrypt error: {e}")
+                if staff.get("password") == password:
+                    st.write("✅ DEBUG: Plain password fallback after exception - LOGIN SUCCESS!")
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
+    
+    st.write("❌ DEBUG: No matching staff found")
+    return False
 def go_to(page: str, **kwargs):
     if page not in VALID_PAGES: return
     st.session_state.current_page = page
@@ -1582,41 +1630,25 @@ def generate_mock_incidents(n=70):
 # PAGES
 def render_login_page():
     st.markdown("## 🔐 Staff Login")
-    
-    # Security notice
-    st.info("🔒 This is a secure area. Your session will timeout after 30 minutes of inactivity.")
-    
+
     email = st.text_input("Email Address", placeholder="your.email@example.com", key="login_email")
     password = st.text_input("Password", type="password", placeholder="Enter password", key="login_pass")
-    
     if st.button("Login", type="primary", use_container_width=True):
-        success, error_message = login_user(email, password)
-        
-        if success:
+        if login_user(email, password):
             st.success(f"Welcome {st.session_state.current_user['name']}!")
             st.rerun()
         else:
-            st.error(error_message or "Invalid credentials")
-    
-    # Show lockout warning if account is locked
-    if email:
-        is_locked, remaining = check_login_attempts(email)
-        if is_locked:
-            st.warning(f"⚠️ Account locked. Try again in {remaining} minutes.")
+            st.error("Invalid credentials")
 
 def render_landing_page():
-    # Check for session timeout
-    if check_session_timeout():
-        st.warning("Your session has timed out due to inactivity. Please log in again.")
-        st.rerun()
-    
     user = st.session_state.current_user or {}
     st.markdown(f"### 👋 Welcome, {user.get('name', 'User')}")
     
     col1, col2 = st.columns([6, 1])
     with col2:
         if st.button("Logout", key="logout_btn"):
-            logout_user()
+            st.session_state.logged_in = False
+            st.session_state.current_page = "login"
             st.rerun()
     
     # Admin portal button for admin users
@@ -2099,8 +2131,8 @@ def render_student_analysis_page():
     # ENHANCED GRAPH 1: DAILY FREQUENCY
     # ================================================================
     
-    st.markdown("### 📅 Daily Incident Frequency - Minor vs Critical")
-    st.caption("Understanding the relationship between minor incidents and critical escalations")
+    st.markdown("### 📅 Daily Incident Frequency - Regular vs Critical")
+    st.caption("Understanding the relationship between regular incidents and critical escalations")
     
     fig1 = go.Figure()
     
@@ -2109,12 +2141,12 @@ def render_student_analysis_page():
         fig1.add_trace(go.Bar(
             x=daily_quick["date_parsed"], 
             y=daily_quick["count"],
-            name='Minor Incidents',
+            name='Regular Incidents',
             marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
             text=daily_quick["count"],
             textposition='inside',
             textfont=dict(color='white', size=11, family='Arial Black'),
-            hovertemplate='<b>Date:</b> %{x}<br><b>Minor:</b> %{y}<extra></extra>'
+            hovertemplate='<b>Date:</b> %{x}<br><b>Regular:</b> %{y}<extra></extra>'
         ))
     
     if not crit_only_df.empty:
@@ -2149,7 +2181,7 @@ def render_student_analysis_page():
         escalation_rate = (len(crit_only_df) / len(quick_only_df)) * 100 if len(quick_only_df) > 0 else 0
         col1, col2, col3 = st.columns(3)
         with col1:
-            st.metric("Minor Incidents", len(quick_only_df), help="Severity 1-2")
+            st.metric("Regular Incidents", len(quick_only_df), help="Severity 1-2")
         with col2:
             st.metric("Critical Incidents", len(crit_only_df), help="Severity 3+")
         with col3:
@@ -2157,11 +2189,11 @@ def render_student_analysis_page():
     
     with st.expander("💡 Clinical Interpretation (Berry Street Body Domain)"):
         st.markdown(
-            "**Pattern Recognition:** Days with multiple minor incidents may predict critical escalation. "
-            "When you see clustering of minor incidents, it indicates the student's nervous system is already dysregulated.\n\n"
+            "**Pattern Recognition:** Days with multiple regular incidents may predict critical escalation. "
+            "When you see clustering of regular incidents, it indicates the student's nervous system is already dysregulated.\n\n"
             "**Berry Street Body:** On high-frequency days, increase proactive regulation - breathing exercises, "
             "movement breaks, sensory activities. The goal is to widen the Window of Tolerance before it narrows further.\n\n"
-            "**Prevention Strategy:** If you see 2+ minor incidents in one day, immediately implement intensive Body domain supports "
+            "**Prevention Strategy:** If you see 2+ regular incidents in one day, immediately implement intensive Body domain supports "
             "to prevent critical escalation."
         )
     st.markdown("---")
@@ -2170,7 +2202,7 @@ def render_student_analysis_page():
     # ENHANCED GRAPH 2: BEHAVIOURS
     # ================================================================
     
-    st.markdown("### 🎯 Behaviour Types - Minor vs Critical")
+    st.markdown("### 🎯 Behaviour Types - Regular vs Critical")
     st.caption("Which behaviours escalate to critical incidents?")
     
     all_behaviours = full_df["behaviour_type"].value_counts().head(6).index.tolist()
@@ -2186,11 +2218,11 @@ def render_student_analysis_page():
     fig2 = go.Figure()
     
     fig2.add_trace(go.Bar(
-        y=all_behaviours, x=quick_beh_counts, name='Minor', orientation='h',
+        y=all_behaviours, x=quick_beh_counts, name='Regular', orientation='h',
         marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
         text=quick_beh_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black'),
-        hovertemplate='<b>%{y}</b><br>Minor: %{x}<extra></extra>'
+        hovertemplate='<b>%{y}</b><br>Regular: %{x}<extra></extra>'
     ))
     
     fig2.add_trace(go.Bar(
@@ -2259,7 +2291,7 @@ def render_student_analysis_page():
     fig3 = go.Figure()
     
     fig3.add_trace(go.Bar(
-        y=all_triggers, x=quick_ant_counts, name='Minor', orientation='h',
+        y=all_triggers, x=quick_ant_counts, name='Regular', orientation='h',
         marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
         text=quick_ant_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black')
@@ -2323,7 +2355,7 @@ def render_student_analysis_page():
     if not quick_only_df.empty:
         fig4.add_trace(go.Scatter(
             x=quick_only_df["date_parsed"], y=quick_only_df["severity"],
-            mode='markers', name='Minor',
+            mode='markers', name='Regular',
             marker=dict(size=12, color='#3b82f6', opacity=0.7, line=dict(color='white', width=1.5)),
             hovertemplate='<b>Date:</b> %{x}<br><b>Severity:</b> %{y}<extra></extra>'
         ))
@@ -2401,7 +2433,7 @@ def render_student_analysis_page():
     fig5 = go.Figure()
     
     fig5.add_trace(go.Bar(
-        y=all_locations, x=quick_loc_counts, name='Minor', orientation='h',
+        y=all_locations, x=quick_loc_counts, name='Regular', orientation='h',
         marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
         text=quick_loc_counts, textposition='inside',
         textfont=dict(color='white', size=11, family='Arial Black')
@@ -2471,7 +2503,7 @@ def render_student_analysis_page():
     fig6 = go.Figure()
     
     fig6.add_trace(go.Bar(
-        x=session_order, y=quick_session_counts, name='Minor',
+        x=session_order, y=quick_session_counts, name='Regular',
         marker=dict(color='#3b82f6', line=dict(color='white', width=1)),
         text=quick_session_counts, textposition='inside',
         textfont=dict(color='white', size=12, family='Arial Black')
@@ -2520,7 +2552,7 @@ def render_student_analysis_page():
     
     col_q, col_c = st.columns(2)
     with col_q:
-        st.metric("Quick Incidents", len(quick_only), help="Minor behaviour logs (Severity 1-2)")
+        st.metric("Quick Incidents", len(quick_only), help="Standard behaviour logs (Severity 1-2)")
     with col_c:
         st.metric("Critical Incidents", len(critical_data), help="Severity 3+ requiring ABCH form")
     
@@ -2604,15 +2636,15 @@ def render_student_analysis_page():
         )
     
     with col2:
-        with st.spinner("Generating Behaviour Summary..."):
+        with st.spinner("Generating Behaviour Analysis Plan..."):
             docx_file = generate_behaviour_analysis_plan_docx(
                 student, full_df, top_ant, top_beh, top_loc, top_session, risk_score, risk_level
             )
         if docx_file:
             st.download_button(
-                "📄 Behaviour Summary (Word)",
+                "📄 Behaviour Analysis Plan (Word)",
                 docx_file,
-                file_name=f"Behaviour_Summary_{student['name'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.docx",
+                file_name=f"BAP_{student['name'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.docx",
                 mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
                 use_container_width=True
             )
@@ -3181,12 +3213,6 @@ def main():
     init_state()
     
     if not st.session_state.logged_in:
-        render_login_page()
-        return
-    
-    # Check for session timeout on all authenticated pages
-    if check_session_timeout():
-        st.warning("⚠️ Your session has timed out due to inactivity. Please log in again.")
         render_login_page()
         return
     
