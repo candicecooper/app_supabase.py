@@ -9,8 +9,32 @@ from io import BytesIO
 import base64
 import bcrypt
 
-# MOCK DATA MODE - No database connection
-supabase = None  # Using mock data instead of Supabase
+# SUPABASE CONNECTION
+try:
+    from supabase import create_client, Client
+    SUPABASE_AVAILABLE = True
+except ImportError:
+    SUPABASE_AVAILABLE = False
+    st.warning("⚠️ Supabase not installed. Run: pip install supabase")
+
+# Initialize Supabase client
+@st.cache_resource
+def init_supabase() -> Client:
+    """Initialize Supabase client with credentials from secrets"""
+    if not SUPABASE_AVAILABLE:
+        return None
+    
+    try:
+        url = st.secrets["supabase"]["url"]
+        key = st.secrets["supabase"]["key"]
+        return create_client(url, key)
+    except Exception as e:
+        st.error(f"❌ Supabase connection failed: {e}")
+        st.info("💡 Add Supabase credentials to .streamlit/secrets.toml")
+        return None
+
+# Global Supabase client
+supabase: Client = init_supabase()
 
 st.set_page_config(page_title="CLC Behaviour Support", page_icon="📊", layout="wide", initial_sidebar_state="collapsed")
 
@@ -68,8 +92,7 @@ MOCK_STAFF = [
     {"id": "s1", "name": "Emily Jones", "role": "JP", "email": "emily.jones@example.com", "password": "demo123"},
     {"id": "s2", "name": "Daniel Lee", "role": "PY", "email": "daniel.lee@example.com", "password": "demo123"},
     {"id": "s3", "name": "Sarah Chen", "role": "SY", "email": "sarah.chen@example.com", "password": "demo123"},
-    {"id": "s4", "name": "Admin User", "role": "admin", "email": "admin@school.edu.au", "password": "Admin123!"},
-    {"id": "s5", "name": "Staff Demo", "role": "staff", "email": "staff@school.edu.au", "password": "Staff123!"},
+    {"id": "s4", "name": "Admin User", "role": "ADM", "email": "admin@example.com", "password": "admin123"},
 ]
 
 MOCK_STUDENTS = [
@@ -1246,7 +1269,7 @@ def save_student_to_db(student):
         st.error(f"Error saving student: {e}")
         return False
 
-def delete_student_from_db(student_id):  # Mock
+def delete_student_from_db(student_id):
     """Delete a student from Supabase database"""
     if not supabase:
         return False
@@ -1258,7 +1281,7 @@ def delete_student_from_db(student_id):  # Mock
         st.error(f"Error deleting student: {e}")
         return False
 
-def load_staff_from_db():  # Mock
+def load_staff_from_db():
     """Load staff from Supabase database"""
     if not supabase:
         return MOCK_STAFF
@@ -1285,7 +1308,7 @@ def load_staff_from_db():  # Mock
         st.error(f"Error loading staff: {e}")
         return []  # Return empty list on error
 
-def save_staff_to_db(staff_member):  # Mock
+def save_staff_to_db(staff_member):
     """Save a staff member to Supabase database"""
     if not supabase:
         return False
@@ -1313,7 +1336,7 @@ def save_staff_to_db(staff_member):  # Mock
         st.error(f"Error saving staff: {e}")
         return False
 
-def delete_staff_from_db(staff_id):  # Mock
+def delete_staff_from_db(staff_id):
     """Delete a staff member from Supabase database"""
     if not supabase:
         return False
@@ -1325,7 +1348,7 @@ def delete_staff_from_db(staff_id):  # Mock
         st.error(f"Error deleting staff: {e}")
         return False
 
-def load_incidents_from_db(student_id=None):  # Mock
+def load_incidents_from_db(student_id=None):
     """Load incidents from Supabase database"""
     if not supabase:
         return []
@@ -1362,7 +1385,7 @@ def load_incidents_from_db(student_id=None):  # Mock
         st.error(f"Error loading incidents: {e}")
         return []
 
-def save_incident_to_db(incident):  # Mock
+def save_incident_to_db(incident):
     """Save an incident to Supabase database"""
     if not supabase:
         return False
@@ -1398,7 +1421,7 @@ def save_incident_to_db(incident):  # Mock
         st.error(f"Error saving incident: {e}")
         return False
 
-def load_critical_incidents_from_db(student_id=None):  # Mock
+def load_critical_incidents_from_db(student_id=None):
     """Load critical incidents from Supabase database"""
     if not supabase:
         return []
@@ -1436,7 +1459,7 @@ def load_critical_incidents_from_db(student_id=None):  # Mock
         st.error(f"Error loading critical incidents: {e}")
         return []
 
-def save_critical_incident_to_db(critical):  # Mock
+def save_critical_incident_to_db(critical):
     """Save a critical incident to Supabase database"""
     if not supabase:
         return False
@@ -1495,24 +1518,77 @@ def init_state():
     if "show_critical_prompt" not in ss: ss.show_critical_prompt = False
 
 def login_user(email: str, password: str) -> bool:
-    """Login user - simple password check for mock mode"""
+    """Login user with bcrypt password verification"""
     email = (email or "").strip().lower()
     password = (password or "").strip()
     
+    st.write(f"🔍 DEBUG: Attempting login with email: '{email}'")
+    st.write(f"🔍 DEBUG: Password length: {len(password)}")
+    st.write(f"🔍 DEBUG: Total staff in memory: {len(st.session_state.staff)}")
+    
     if not email or not password:
+        st.write("❌ DEBUG: Email or password empty")
         return False
     
-    for staff in st.session_state.staff:
+    for idx, staff in enumerate(st.session_state.staff):
         staff_email = staff.get("email", "").lower()
+        st.write(f"🔍 DEBUG: Checking staff #{idx}: {staff_email}")
         
         if staff_email == email:
-            # Mock version - simple password comparison
-            if staff.get("password") == password:
-                st.session_state.logged_in = True
-                st.session_state.current_user = staff
-                st.session_state.current_page = "landing"
-                return True
+            st.write(f"✅ DEBUG: Email match found!")
+            st.write(f"🔍 DEBUG: Staff has password field: {staff.get('password')}")
+            st.write(f"🔍 DEBUG: Staff has password_hash field: {staff.get('password_hash', '')[:30]}...")
+            
+            # Get the stored hash
+            stored_hash = staff.get("password_hash", "")
+            if not stored_hash:
+                st.write("⚠️ DEBUG: No password_hash found, trying plain password")
+                if staff.get("password") == password:
+                    st.write("✅ DEBUG: Plain password match!")
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
+                else:
+                    st.write(f"❌ DEBUG: Plain password mismatch. Expected: '{staff.get('password')}', Got: '{password}'")
+                    continue
+            
+            # Verify password against bcrypt hash
+            try:
+                if isinstance(stored_hash, str):
+                    stored_hash_bytes = stored_hash.encode('utf-8')
+                else:
+                    stored_hash_bytes = stored_hash
+                    
+                password_bytes = password.encode('utf-8')
+                
+                st.write(f"🔍 DEBUG: Attempting bcrypt verification...")
+                if bcrypt.checkpw(password_bytes, stored_hash_bytes):
+                    st.write("✅ DEBUG: Bcrypt verification SUCCESS!")
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
+                else:
+                    st.write("❌ DEBUG: Bcrypt verification FAILED")
+                    if staff.get("password") == password:
+                        st.write("✅ DEBUG: Using plain password fallback - LOGIN SUCCESS!")
+                        st.session_state.logged_in = True
+                        st.session_state.current_user = staff
+                        st.session_state.current_page = "landing"
+                        return True
+                    else:
+                        st.write(f"❌ DEBUG: Plain password mismatch")
+            except Exception as e:
+                st.write(f"⚠️ DEBUG: Bcrypt error: {e}")
+                if staff.get("password") == password:
+                    st.write("✅ DEBUG: Plain password fallback after exception - LOGIN SUCCESS!")
+                    st.session_state.logged_in = True
+                    st.session_state.current_user = staff
+                    st.session_state.current_page = "landing"
+                    return True
     
+    st.write("❌ DEBUG: No matching staff found")
     return False
 def go_to(page: str, **kwargs):
     if page not in VALID_PAGES: return
@@ -1685,6 +1761,51 @@ def render_incident_log_page():
         manual_critical = st.checkbox("This incident requires a Critical Incident ABCH Form (regardless of severity)", key="manual_crit")
         submitted = st.form_submit_button("Submit Incident", type="primary")
     
+    if submitted:
+        if not location or not behaviour or not antecedent or not interventions:
+            st.error("Please complete all required fields marked with *")
+        else:
+            new_id = str(uuid.uuid4())
+            is_critical = (severity >= 3) or manual_critical
+            
+            # Generate AI hypothesis
+            hyp_ai = generate_hypothesis_ai(antecedent, behaviour, "")
+            hypothesis_text = f"{hyp_ai['function']} {hyp_ai['item']}"
+            
+            rec = {
+                "id": new_id, 
+                "student_id": student_id, 
+                "student_name": student["name"],
+                "date": inc_date.isoformat(), 
+                "time": inc_time.strftime("%H:%M:%S"),
+                "day": inc_date.strftime("%A"), 
+                "session": get_session_from_time(inc_time),
+                "location": location, 
+                "behaviour_type": behaviour, 
+                "antecedent": antecedent,
+                "intervention": interventions,  # Save as list
+                "severity": severity,
+                "reported_by": st.session_state.current_user.get("id", "unknown"),  # Save staff ID
+                "duration_minutes": duration, 
+                "description": description or "", 
+                "is_critical": is_critical,
+                "hypothesis_function": hyp_ai['function'],
+                "hypothesis_item": hyp_ai['item']
+            }
+            
+            # SAVE TO DATABASE FIRST
+            if save_incident_to_db(rec):
+                # Then add to session state
+                st.session_state.incidents.append(rec)
+                st.success("✅ Incident logged successfully and saved to database")
+                
+                if is_critical:
+                    st.session_state.current_incident_id = new_id
+                    st.session_state.show_critical_prompt = True
+                    st.session_state.last_incident_info = {"severity": severity, "manual": manual_critical}
+                    st.rerun()
+            else:
+                st.error("❌ Failed to save incident to database. Please try again.")
 
 
 def render_critical_incident_page():
