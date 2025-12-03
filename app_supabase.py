@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from datetime import datetime, date, time, timedelta
 import uuid
 import random
+import json
 from io import BytesIO
 import base64
 import bcrypt
@@ -166,7 +167,7 @@ ANTECEDENTS = [
 INTERVENTIONS = ["CPI Supportive stance", "Offered break", "Reduced demand", "Provided choices", 
                 "Removed audience", "Visual supports", "Co-regulation", "Prompted coping skill", "Redirection"]
 LOCATIONS = ["JP Classroom", "PY Classroom", "SY Classroom", "Playground", "Library", "Office", "Student Gate", "Toilets"]
-VALID_PAGES = ["login", "landing", "program_students", "incident_log", "critical_incident", "student_analysis", "student_dashboard", "admin_portal"]
+VALID_PAGES = ["login", "landing", "program_students", "incident_log", "critical_incident", "review_critical", "leader_approve_critical", "student_analysis", "student_dashboard", "admin_portal"]
 
 # AI HYPOTHESIS SYSTEM
 HYPOTHESIS_FUNCTIONS = ["To get", "To avoid"]
@@ -1334,9 +1335,15 @@ def save_critical_incident_to_db(critical):
     
     try:
         primary = critical.get('ABCH_primary', {})
+        
+        # Prepare audit trail as JSON string
+        audit_trail_json = critical.get('audit_trail', [])
+        if isinstance(audit_trail_json, list):
+            audit_trail_json = json.dumps(audit_trail_json)
+        
         data = {
             "student_id": critical['student_id'],
-            "severity": critical['severity'],
+            "severity": critical.get('severity', 5),
             "reported_by": critical.get('reported_by'),
             "primary_location": primary.get('location', ''),
             "primary_context": primary.get('context', ''),
@@ -1346,14 +1353,30 @@ def save_critical_incident_to_db(critical):
             "primary_hypothesis_function": primary.get('hypothesis_function'),
             "primary_hypothesis_item": primary.get('hypothesis_item'),
             "additional_entries": critical.get('ABCH_additional', []),
-            "outcomes": critical.get('outcomes', []),
+            "outcomes": critical.get('intended_outcomes', []),
             "sapol_reference": critical.get('sapol_reference'),
-            "admin_summary": critical.get('admin_summary')
+            "admin_summary": critical.get('admin_summary'),
+            # Workflow fields
+            "status": critical.get('status', 'draft'),
+            "completed_by_id": critical.get('completed_by_id'),
+            "reviewed_by_id": critical.get('reviewed_by_id'),
+            "leader_approved_by_id": critical.get('leader_approved_by_id'),
+            "assigned_to_id": critical.get('assigned_to_id'),
+            "review_notes": critical.get('review_notes'),
+            "leader_notes": critical.get('leader_notes'),
+            "audit_trail": audit_trail_json,
+            "completed_at": critical.get('completed_at'),
+            "reviewed_at": critical.get('reviewed_at'),
+            "leader_approved_at": critical.get('leader_approved_at'),
+            "submitted_at": critical.get('submitted_at'),
+            "include_audit_in_report": critical.get('include_audit_in_report', False)
         }
         
         if 'id' not in critical or not critical['id']:
             # New critical incident
-            supabase.table('critical_incidents').insert(data).execute()
+            response = supabase.table('critical_incidents').insert(data).execute()
+            if response.data:
+                critical['id'] = response.data[0]['id']
         else:
             # Update existing
             supabase.table('critical_incidents').update(data).eq('id', critical['id']).execute()
@@ -1361,6 +1384,140 @@ def save_critical_incident_to_db(critical):
     except Exception as e:
         st.error(f"Error saving critical incident: {e}")
         return False
+
+
+# ===================================================================
+# CRITICAL INCIDENT WORKFLOW FUNCTIONS
+# ===================================================================
+
+def get_pending_reviews_for_user(user_id):
+    """Get critical incidents pending review by this user"""
+    if not supabase:
+        return [c for c in st.session_state.critical_incidents 
+                if c.get('status') == 'pending_review' and c.get('assigned_to_id') == user_id]
+    
+    try:
+        response = supabase.table('critical_incidents').select('*')\
+            .eq('status', 'pending_review')\
+            .eq('assigned_to_id', user_id)\
+            .execute()
+        return response.data
+    except:
+        return []
+
+def get_pending_leader_approvals(leader_id):
+    """Get critical incidents pending leader approval"""
+    if not supabase:
+        return [c for c in st.session_state.critical_incidents 
+                if c.get('status') == 'pending_leader' and c.get('assigned_to_id') == leader_id]
+    
+    try:
+        response = supabase.table('critical_incidents').select('*')\
+            .eq('status', 'pending_leader')\
+            .eq('assigned_to_id', leader_id)\
+            .execute()
+        return response.data
+    except:
+        return []
+
+def get_manager_staff_id():
+    """Get the staff ID of the Leader/Manager"""
+    if not supabase:
+        manager = next((s for s in st.session_state.staff if s.get('role') == 'Leader'), None)
+        return manager['id'] if manager else None
+    
+    try:
+        response = supabase.table('staff').select('id').eq('role', 'Leader').limit(1).execute()
+        if response.data:
+            return response.data[0]['id']
+        return None
+    except:
+        return None
+
+def add_audit_trail_entry(critical_incident, action, staff_name, notes=""):
+    """Add an entry to the audit trail"""
+    audit_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "action": action,
+        "staff": staff_name,
+        "notes": notes
+    }
+    
+    if 'audit_trail' not in critical_incident:
+        critical_incident['audit_trail'] = []
+    
+    if isinstance(critical_incident['audit_trail'], str):
+        try:
+            critical_incident['audit_trail'] = json.loads(critical_incident['audit_trail'])
+        except:
+            critical_incident['audit_trail'] = []
+    
+    critical_incident['audit_trail'].append(audit_entry)
+    return critical_incident
+
+def format_audit_trail(audit_trail):
+    """Format audit trail for display"""
+    if not audit_trail:
+        return "No audit trail"
+    
+    if isinstance(audit_trail, str):
+        try:
+            audit_trail = json.loads(audit_trail)
+        except:
+            return "Error parsing audit trail"
+    
+    formatted = []
+    for entry in audit_trail:
+        timestamp = entry.get('timestamp', 'Unknown time')
+        action = entry.get('action', 'Unknown action')
+        staff = entry.get('staff', 'Unknown staff')
+        notes = entry.get('notes', '')
+        
+        formatted.append(f"**{action}** by {staff} at {timestamp}")
+        if notes:
+            formatted.append(f"  Notes: {notes}")
+    
+    return "\n\n".join(formatted)
+
+def generate_critical_incident_email_content(critical, student, include_audit=False):
+    """Generate email content for critical incident submission"""
+    primary = critical.get('ABCH_primary', {})
+    
+    email_body = f"""
+CRITICAL INCIDENT REPORT - {student['name']}
+
+Date: {critical.get('created_at', 'N/A')}
+Student: {student['name']} (Grade {student['grade']})
+Program: {PROGRAM_NAMES.get(student['program'], student['program'])}
+
+INCIDENT SUMMARY:
+Location: {primary.get('location', 'N/A')}
+Time: {primary.get('time', 'N/A')}
+Behaviour: {primary.get('behaviour', 'N/A')}
+
+FUNCTIONAL HYPOTHESIS:
+{primary.get('hypothesis', 'N/A')}
+
+INTENDED OUTCOMES:
+{', '.join(critical.get('intended_outcomes', []))}
+
+SAPOL REFERENCE:
+{critical.get('sapol_reference', 'N/A')}
+
+WORKFLOW STATUS:
+Status: {critical.get('status', 'draft').replace('_', ' ').title()}
+Completed by: {critical.get('completed_by_name', 'N/A')}
+Reviewed by: {critical.get('reviewed_by_name', 'N/A')}
+Approved by: {critical.get('leader_approved_by_name', 'N/A')}
+"""
+    
+    if include_audit and critical.get('audit_trail'):
+        email_body += "\n\nAUDIT TRAIL:\n"
+        email_body += format_audit_trail(critical['audit_trail'])
+    
+    email_body += "\n\n---\nThis is an automated notification from the Behaviour Support Tool."
+    
+    return email_body
 
 
 def init_state():
@@ -1524,6 +1681,31 @@ def render_landing_page():
         st.markdown("---")
         if st.button("🔧 Admin Portal", use_container_width=True, key="goto_admin"):
             go_to("admin_portal")
+    
+    # WORKFLOW NOTIFICATIONS
+    current_user_id = st.session_state.current_user.get("id")
+    pending_reviews = get_pending_reviews_for_user(current_user_id)
+    pending_leader = get_pending_leader_approvals(current_user_id)
+    
+    if pending_reviews or pending_leader:
+        st.markdown("---")
+        st.markdown("### 📋 Pending Actions")
+        
+        if pending_reviews:
+            col_alert1, col_alert2 = st.columns([4, 1])
+            with col_alert1:
+                st.warning(f"🔴 **{len(pending_reviews)} Critical Incident{'' if len(pending_reviews) == 1 else 's'} Pending Your Review**")
+            with col_alert2:
+                if st.button("Review Now", key="goto_review", use_container_width=True):
+                    go_to("review_critical")
+        
+        if pending_leader:
+            col_alert3, col_alert4 = st.columns([4, 1])
+            with col_alert3:
+                st.warning(f"🟡 **{len(pending_leader)} Critical Incident{'' if len(pending_leader) == 1 else 's'} Awaiting Leader Approval**")
+            with col_alert4:
+                if st.button("Approve Now", key="goto_leader_approve", use_container_width=True):
+                    go_to("leader_approve_critical")
     
     st.markdown("---")
     col1, col2, col3 = st.columns(3)
@@ -1853,15 +2035,29 @@ def render_critical_incident_page():
     
     st.markdown("---")
     
-    if st.button("📧 Submit Critical Incident Form", type="primary", use_container_width=True, key="save_crit"):
+    # GET LIST OF OTHER STAFF FOR ASSIGNMENT
+    other_staff = [s for s in st.session_state.staff if s['id'] != st.session_state.current_user['id']]
+    
+    st.markdown("### Assign for Review")
+    st.caption("Select another staff member to review this critical incident report")
+    assigned_staff_id = st.selectbox(
+        "Assign to staff member *",
+        options=[s['id'] for s in other_staff],
+        format_func=lambda x: next((s['name'] for s in other_staff if s['id'] == x), "Unknown"),
+        key="assigned_review_staff"
+    )
+    
+    st.markdown("---")
+    
+    if st.button("📧 Complete & Assign for Review", type="primary", use_container_width=True, key="save_crit"):
         # Validation
         errors = []
         if not context_1 or not behaviour_1 or not consequence_1 or not hypothesis_1:
             errors.append("Please complete all ABCH fields for initial incident")
         if not staff_agrees:
             errors.append("Please confirm your agreement")
-        if not leader_email or "@" not in leader_email or not admin_email or "@" not in admin_email:
-            errors.append("Please enter valid email addresses")
+        if not assigned_staff_id:
+            errors.append("Please assign a staff member for review")
         if "Emergency services - SAPOL" in selected_outcomes and not sapol_reference:
             errors.append("SAPOL Reference Number is required when SAPOL is involved")
         
@@ -1869,6 +2065,9 @@ def render_critical_incident_page():
             for error in errors:
                 st.error(f"❌ {error}")
         else:
+            current_user_id = st.session_state.current_user['id']
+            current_user_name = st.session_state.current_user['name']
+            
             record = {
                 "id": str(uuid.uuid4()),
                 "created_at": datetime.now().isoformat(),
@@ -1876,6 +2075,7 @@ def render_critical_incident_page():
                 "student_id": quick_inc["student_id"],
                 "student_name": student["name"],
                 "incident_type": "Critical",
+                "severity": quick_inc.get('severity', 5),
                 "ABCH_primary": {
                     "location": location_1,
                     "context": context_1,
@@ -1900,49 +2100,398 @@ def render_critical_incident_page():
                     "timestamp": datetime.now().isoformat()
                 },
                 "leader_email": leader_email,
-                "admin_email": admin_email
+                "admin_email": "clc.admin281@schools.sa.edu.au",  # Hard-coded admin email
+                # WORKFLOW FIELDS
+                "status": "pending_review",
+                "completed_by_id": current_user_id,
+                "completed_by_name": current_user_name,
+                "assigned_to_id": assigned_staff_id,
+                "assigned_to_name": next((s['name'] for s in other_staff if s['id'] == assigned_staff_id), "Unknown"),
+                "completed_at": datetime.now().isoformat(),
+                "audit_trail": [],
+                "include_audit_in_report": False
             }
             
-            st.session_state.critical_incidents.append(record)
-            st.session_state.abch_rows = []
-            st.session_state.hyp_1_generated = False
+            # Add audit trail entry
+            record = add_audit_trail_entry(
+                record,
+                "ABCH Form Completed",
+                current_user_name,
+                f"Assigned to {record['assigned_to_name']} for review"
+            )
             
-            st.success("✅ Critical incident form saved to database")
+            # Save to database
+            if save_critical_incident_to_db(record):
+                st.session_state.critical_incidents.append(record)
+                st.session_state.abch_rows = []
+                st.session_state.hyp_1_generated = False
+                
+                st.success("✅ Critical incident form completed and assigned for review")
+                st.info(f"📤 Assigned to **{record['assigned_to_name']}** for review")
+                st.info("💾 Critical incident data saved to database")
+                
+                # GENERATE ADMIN SUMMARY
+                admin_summary = generate_admin_summary(record, student, staff_name)
+                
+                # Show admin summary
+                with st.expander("📋 ADMIN SUMMARY (For External Incident Log)", expanded=False):
+                    st.text_area("Copy this summary for departmental log:", admin_summary, height=400, key="admin_summary_display")
+                    st.download_button(
+                        "📥 Download Admin Summary",
+                        admin_summary,
+                        file_name=f"Admin_Summary_{student['name'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.txt",
+                        mime="text/plain"
+                    )
+                
+                if sapol_reference:
+                    st.info(f"🚔 SAPOL Reference: {sapol_reference}")
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if st.button("📊 View Analysis", type="primary", use_container_width=True, key="view_analysis"):
+                        go_to("student_analysis", selected_student_id=quick_inc["student_id"])
+                with col2:
+                    if st.button("↩️ Back to Students", use_container_width=True, key="back_crit_after"):
+                        go_to("program_students", selected_program=student["program"])
+                with col3:
+                    if st.button("🏠 Program Landing", use_container_width=True, key="home_crit_after"):
+                        go_to("landing")
+            else:
+                st.error("❌ Failed to save critical incident to database")
+
+def render_review_critical_page():
+    """Staff B reviews the critical incident ABCH form"""
+    current_user_id = st.session_state.current_user.get("id")
+    current_user_name = st.session_state.current_user.get("name")
+    
+    # Get pending reviews for this user
+    pending = get_pending_reviews_for_user(current_user_id)
+    
+    st.markdown("## 📋 Critical Incidents Pending Your Review")
+    
+    if st.button("⬅ Back to Landing", key="back_review"):
+        go_to("landing")
+    
+    if not pending:
+        st.info("✅ No critical incidents pending your review")
+        return
+    
+    st.markdown("---")
+    st.markdown(f"### You have {len(pending)} critical incident{'' if len(pending) == 1 else 's'} to review")
+    
+    # Select which incident to review
+    if len(pending) > 1:
+        incident_options = {str(inc.get('id')): f"{inc.get('student_name', 'Unknown')} - {inc.get('created_at', 'No date')}" 
+                           for inc in pending}
+        selected_id = st.selectbox("Select incident to review:", list(incident_options.keys()), 
+                                   format_func=lambda x: incident_options[x])
+        critical = next((inc for inc in pending if str(inc.get('id')) == selected_id), None)
+    else:
+        critical = pending[0]
+    
+    if not critical:
+        st.error("Critical incident not found")
+        return
+    
+    # Get student info
+    student = get_student(critical['student_id'])
+    if not student:
+        st.error("Student not found")
+        return
+    
+    st.markdown("---")
+    st.markdown(f"### Critical Incident - {student['name']}")
+    
+    # Show incident details
+    primary = critical.get('ABCH_primary', {})
+    
+    with st.container(border=True):
+        st.markdown("**Incident Overview**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f"**Student:** {student['name']}")
+            st.markdown(f"**Grade:** {student['grade']}")
+        with col2:
+            st.markdown(f"**Date:** {critical.get('created_at', 'N/A')[:10]}")
+            st.markdown(f"**Severity:** {critical.get('severity', 'N/A')}")
+        with col3:
+            st.markdown(f"**Completed by:** {critical.get('completed_by_name', 'N/A')}")
+            st.markdown(f"**Status:** {critical.get('status', 'draft').replace('_', ' ').title()}")
+    
+    st.markdown("---")
+    st.markdown("**ABCH Details**")
+    
+    with st.expander("📍 ANTECEDENT (What happened before)", expanded=True):
+        st.markdown(f"**Location:** {primary.get('location', 'N/A')}")
+        st.markdown(f"**Time:** {primary.get('time', 'N/A')}")
+        st.markdown(f"**Context:** {primary.get('context', 'N/A')}")
+    
+    with st.expander("🎯 BEHAVIOUR (What the student did)", expanded=True):
+        st.markdown(primary.get('behaviour', 'N/A'))
+    
+    with st.expander("📊 CONSEQUENCE (What happened after)", expanded=True):
+        st.markdown(primary.get('consequence', 'N/A'))
+    
+    with st.expander("💡 HYPOTHESIS (Functional reason)", expanded=True):
+        st.markdown(primary.get('hypothesis', 'N/A'))
+    
+    # Additional ABCH entries
+    additional = critical.get('ABCH_additional', [])
+    if additional:
+        st.markdown("---")
+        st.markdown(f"**Continuation Entries ({len(additional)})**")
+        for idx, entry in enumerate(additional):
+            with st.expander(f"Continuation Entry {idx + 1}"):
+                st.markdown(f"**Location:** {entry.get('location', 'N/A')}")
+                st.markdown(f"**Time:** {entry.get('time', 'N/A')}")
+                st.markdown(f"**Context:** {entry.get('context', 'N/A')}")
+                st.markdown(f"**Behaviour:** {entry.get('behaviour', 'N/A')}")
+                st.markdown(f"**Consequence:** {entry.get('consequence', 'N/A')}")
+                st.markdown(f"**Hypothesis:** {entry.get('hypothesis', 'N/A')}")
+    
+    # Intended outcomes
+    st.markdown("---")
+    st.markdown("**Intended Outcomes**")
+    outcomes = critical.get('intended_outcomes', [])
+    if outcomes:
+        for outcome in outcomes:
+            st.markdown(f"- {outcome}")
+    
+    if critical.get('sapol_reference'):
+        st.warning(f"🚔 **SAPOL Reference:** {critical['sapol_reference']}")
+    
+    # Review section
+    st.markdown("---")
+    st.markdown("### Your Review")
+    
+    review_notes = st.text_area(
+        "Review Notes (Optional)",
+        placeholder="Add any observations, concerns, or additional context...",
+        height=150,
+        key="review_notes_input"
+    )
+    
+    st.markdown("---")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("✅ Approve & Forward to Leader", type="primary", use_container_width=True, key="approve_review"):
+            # Get manager ID
+            manager_id = get_manager_staff_id()
             
-            # GENERATE ADMIN SUMMARY
-            admin_summary = generate_admin_summary(record, student, staff_name)
-            
-            # Show admin summary
-            with st.expander("📋 ADMIN SUMMARY (For External Incident Log)", expanded=True):
-                st.text_area("Copy this summary for departmental log:", admin_summary, height=400, key="admin_summary_display")
-                st.download_button(
-                    "📥 Download Admin Summary",
-                    admin_summary,
-                    file_name=f"Admin_Summary_{student['name'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.txt",
-                    mime="text/plain"
+            if not manager_id:
+                st.error("❌ No Leader/Manager found in system. Please contact admin.")
+            else:
+                # Update critical incident
+                critical['status'] = 'pending_leader'
+                critical['reviewed_by_id'] = current_user_id
+                critical['reviewed_by_name'] = current_user_name
+                critical['review_notes'] = review_notes
+                critical['reviewed_at'] = datetime.now().isoformat()
+                critical['assigned_to_id'] = manager_id
+                
+                # Add audit trail
+                critical = add_audit_trail_entry(
+                    critical,
+                    "Reviewed by Staff Member",
+                    current_user_name,
+                    review_notes if review_notes else "No additional notes"
                 )
+                
+                # Save to database
+                if save_critical_incident_to_db(critical):
+                    # Update session state
+                    for idx, inc in enumerate(st.session_state.critical_incidents):
+                        if inc.get('id') == critical['id']:
+                            st.session_state.critical_incidents[idx] = critical
+                            break
+                    
+                    st.success("✅ Review completed and forwarded to Leader for approval")
+                    st.balloons()
+                    st.info("↩️ Returning to landing page...")
+                    time.sleep(2)
+                    go_to("landing")
+                else:
+                    st.error("❌ Failed to save review to database")
+    
+    with col2:
+        if st.button("🔙 Back to Landing (Save for Later)", use_container_width=True, key="back_review_later"):
+            go_to("landing")
+
+def render_leader_approve_critical_page():
+    """Leader reviews, amends, and approves critical incident"""
+    current_user_id = st.session_state.current_user.get("id")
+    current_user_name = st.session_state.current_user.get("name")
+    
+    # Get pending leader approvals
+    pending = get_pending_leader_approvals(current_user_id)
+    
+    st.markdown("## 🎯 Critical Incidents Awaiting Leader Approval")
+    
+    if st.button("⬅ Back to Landing", key="back_leader"):
+        go_to("landing")
+    
+    if not pending:
+        st.info("✅ No critical incidents awaiting your approval")
+        return
+    
+    st.markdown("---")
+    st.markdown(f"### You have {len(pending)} critical incident{'' if len(pending) == 1 else 's'} awaiting approval")
+    
+    # Select which incident to approve
+    if len(pending) > 1:
+        incident_options = {str(inc.get('id')): f"{inc.get('student_name', 'Unknown')} - {inc.get('created_at', 'No date')}" 
+                           for inc in pending}
+        selected_id = st.selectbox("Select incident to approve:", list(incident_options.keys()), 
+                                   format_func=lambda x: incident_options[x])
+        critical = next((inc for inc in pending if str(inc.get('id')) == selected_id), None)
+    else:
+        critical = pending[0]
+    
+    if not critical:
+        st.error("Critical incident not found")
+        return
+    
+    # Get student info
+    student = get_student(critical['student_id'])
+    if not student:
+        st.error("Student not found")
+        return
+    
+    st.markdown("---")
+    st.markdown(f"### Critical Incident - {student['name']}")
+    
+    # Show workflow status
+    primary = critical.get('ABCH_primary', {})
+    
+    with st.container(border=True):
+        st.markdown("**Workflow Status**")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.markdown(f"✅ **Completed by:** {critical.get('completed_by_name', 'N/A')}")
+        with col2:
+            st.markdown(f"✅ **Reviewed by:** {critical.get('reviewed_by_name', 'N/A')}")
+        with col3:
+            st.markdown(f"⏳ **Awaiting:** Leader Approval")
+    
+    # Show review notes if any
+    if critical.get('review_notes'):
+        with st.expander("📝 Review Notes from Staff", expanded=True):
+            st.info(critical['review_notes'])
+    
+    st.markdown("---")
+    
+    # Show all ABCH details (collapsed)
+    with st.expander("📋 View Complete ABCH Form"):
+        st.markdown(f"**Date:** {critical.get('created_at', 'N/A')[:10]}")
+        st.markdown(f"**Severity:** {critical.get('severity', 'N/A')}")
+        st.markdown("---")
+        
+        st.markdown("**Initial Incident**")
+        st.markdown(f"**Location:** {primary.get('location', 'N/A')}")
+        st.markdown(f"**Time:** {primary.get('time', 'N/A')}")
+        st.markdown(f"**Context:** {primary.get('context', 'N/A')}")
+        st.markdown(f"**Behaviour:** {primary.get('behaviour', 'N/A')}")
+        st.markdown(f"**Consequence:** {primary.get('consequence', 'N/A')}")
+        st.markdown(f"**Hypothesis:** {primary.get('hypothesis', 'N/A')}")
+        
+        additional = critical.get('ABCH_additional', [])
+        if additional:
+            st.markdown("---")
+            for idx, entry in enumerate(additional):
+                st.markdown(f"**Continuation Entry {idx + 1}**")
+                st.markdown(f"**Behaviour:** {entry.get('behaviour', 'N/A')}")
+        
+        st.markdown("---")
+        st.markdown("**Intended Outcomes**")
+        for outcome in critical.get('intended_outcomes', []):
+            st.markdown(f"- {outcome}")
+        
+        if critical.get('sapol_reference'):
+            st.warning(f"🚔 **SAPOL Reference:** {critical['sapol_reference']}")
+    
+    # Leader amendments/notes
+    st.markdown("---")
+    st.markdown("### Leader Review & Amendments")
+    
+    leader_notes = st.text_area(
+        "Leader Notes / Amendments",
+        placeholder="Add any corrections, additional context, or amendments to the report...",
+        height=150,
+        key="leader_notes_input"
+    )
+    
+    # Audit trail toggle
+    st.markdown("---")
+    st.markdown("### Final Report Options")
+    include_audit = st.checkbox(
+        "Include full audit trail in final report",
+        value=False,
+        help="If checked, the PDF report will include all workflow steps and notes. If unchecked, only the final approved version is included.",
+        key="include_audit_toggle"
+    )
+    
+    st.markdown("---")
+    
+    # Approval button
+    if st.button("✅ Final Approval & Submit Report", type="primary", use_container_width=True, key="final_approve"):
+        # Update critical incident
+        critical['status'] = 'completed'
+        critical['leader_approved_by_id'] = current_user_id
+        critical['leader_approved_by_name'] = current_user_name
+        critical['leader_notes'] = leader_notes
+        critical['leader_approved_at'] = datetime.now().isoformat()
+        critical['submitted_at'] = datetime.now().isoformat()
+        critical['include_audit_in_report'] = include_audit
+        critical['assigned_to_id'] = None  # No longer assigned
+        
+        # Add audit trail
+        critical = add_audit_trail_entry(
+            critical,
+            "Approved by Leader",
+            current_user_name,
+            leader_notes if leader_notes else "Final approval granted"
+        )
+        
+        # Save to database
+        if save_critical_incident_to_db(critical):
+            # Update session state
+            for idx, inc in enumerate(st.session_state.critical_incidents):
+                if inc.get('id') == critical['id']:
+                    st.session_state.critical_incidents[idx] = critical
+                    break
             
-            # SEND EMAILS
-            staff_email = st.session_state.current_user.get("email", "staff@example.com")
-            send_critical_incident_email(record, student, staff_email, leader_email, admin_email)
+            st.success("✅ Critical incident approved and submitted")
+            
+            # Generate email content
+            email_content = generate_critical_incident_email_content(critical, student, include_audit)
             
             st.markdown("---")
-            st.info("✉️ Emails sent to Line Manager, Admin, and completing staff member")
-            st.info("💾 Critical incident data saved in student's file")
-            st.info("📋 Admin summary generated for external log")
-            if sapol_reference:
-                st.info(f"🚔 SAPOL Reference: {sapol_reference}")
+            st.markdown("### 📧 Email Notification Generated")
             
-            col1, col2, col3 = st.columns(3)
+            with st.expander("Email Content (for manual sending)", expanded=True):
+                st.text_area("Email body:", email_content, height=400, key="email_display")
+                
+                st.markdown("**Recipients:**")
+                st.markdown(f"- Admin: clc.admin281@schools.sa.edu.au")
+                st.markdown(f"- Completing Staff: {critical.get('completed_by_name', 'N/A')}")
+                st.markdown(f"- Reviewing Staff: {critical.get('reviewed_by_name', 'N/A')}")
+                st.markdown(f"- Leader: {current_user_name}")
+            
+            st.info("📝 **Note:** Email system not yet configured. Please copy the email content above and send manually, or configure SMTP settings for automatic sending.")
+            
+            st.balloons()
+            
+            col1, col2 = st.columns(2)
             with col1:
-                if st.button("📊 View Analysis", type="primary", use_container_width=True, key="view_analysis"):
-                    go_to("student_analysis", selected_student_id=quick_inc["student_id"])
+                if st.button("📊 View Student Analysis", use_container_width=True, key="goto_analysis"):
+                    go_to("student_analysis", selected_student_id=critical['student_id'])
             with col2:
-                if st.button("↩️ Back to Students", use_container_width=True, key="back_crit_after"):
-                    go_to("program_students", selected_program=student["program"])
-            with col3:
-                if st.button("🏠 Program Landing", use_container_width=True, key="home_crit_after"):
+                if st.button("🏠 Return to Landing", use_container_width=True, key="back_landing"):
                     go_to("landing")
+        else:
+            st.error("❌ Failed to save approval to database")
+
 def render_student_analysis_page():
     """Comprehensive Data Analysis with Berry Street Education Model"""
     student_id = st.session_state.get("selected_student_id")
@@ -3135,6 +3684,8 @@ def main():
     elif page == "program_students": render_program_students_page()
     elif page == "incident_log": render_incident_log_page()
     elif page == "critical_incident": render_critical_incident_page()
+    elif page == "review_critical": render_review_critical_page()
+    elif page == "leader_approve_critical": render_leader_approve_critical_page()
     elif page == "student_analysis": render_student_analysis_page()
     elif page == "student_dashboard": render_student_dashboard()
     elif page == "admin_portal": render_admin_portal()
