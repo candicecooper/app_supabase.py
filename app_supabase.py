@@ -9,6 +9,9 @@ import json
 from io import BytesIO
 import base64
 import bcrypt
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # SUPABASE CONNECTION
 try:
@@ -1520,6 +1523,168 @@ Approved by: {critical.get('leader_approved_by_name', 'N/A')}
     return email_body
 
 
+# ===================================================================
+# EMAIL NOTIFICATION FUNCTIONS
+# ===================================================================
+
+def get_email_config():
+    """Get email configuration from Streamlit secrets"""
+    try:
+        return {
+            'smtp_server': st.secrets.get("email", {}).get("smtp_server", "smtp.gmail.com"),
+            'smtp_port': st.secrets.get("email", {}).get("smtp_port", 587),
+            'sender_email': st.secrets.get("email", {}).get("sender_email", ""),
+            'sender_password': st.secrets.get("email", {}).get("sender_password", ""),
+            'enabled': st.secrets.get("email", {}).get("enabled", False)
+        }
+    except:
+        return {
+            'smtp_server': 'smtp.gmail.com',
+            'smtp_port': 587,
+            'sender_email': '',
+            'sender_password': '',
+            'enabled': False
+        }
+
+def send_email(to_email, subject, body):
+    """Send an email notification"""
+    config = get_email_config()
+    
+    if not config['enabled'] or not config['sender_email'] or not config['sender_password']:
+        # Email not configured - return False to indicate email wasn't sent
+        return False
+    
+    try:
+        # Create message
+        msg = MIMEMultipart()
+        msg['From'] = config['sender_email']
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        
+        # Add body
+        msg.attach(MIMEText(body, 'plain'))
+        
+        # Send email
+        with smtplib.SMTP(config['smtp_server'], config['smtp_port']) as server:
+            server.starttls()
+            server.login(config['sender_email'], config['sender_password'])
+            server.send_message(msg)
+        
+        return True
+    except Exception as e:
+        st.warning(f"⚠️ Email notification failed: {str(e)}")
+        return False
+
+def send_assignment_notification(assigned_staff, assigner_name, student_name, critical_id):
+    """Send email when critical incident is assigned for review"""
+    if not assigned_staff.get('email'):
+        return False
+    
+    subject = f"Critical Incident Review Assigned - {student_name}"
+    
+    body = f"""Hi {assigned_staff['name']},
+
+A critical incident has been assigned to you for review.
+
+STUDENT: {student_name}
+ASSIGNED BY: {assigner_name}
+ACTION REQUIRED: Review and approve the ABCH form
+
+Please log in to the Behaviour Support Tool to review this incident:
+https://behaviour-analysis-tool.streamlit.app
+
+This critical incident requires your review before it can be forwarded to the Leader for final approval.
+
+---
+This is an automated notification from the Behaviour Support Tool.
+If you have questions, please contact {assigner_name}.
+"""
+    
+    return send_email(assigned_staff['email'], subject, body)
+
+def send_leader_notification(leader_staff, reviewer_name, student_name, critical_id):
+    """Send email when critical incident is forwarded to leader"""
+    if not leader_staff.get('email'):
+        return False
+    
+    subject = f"Critical Incident Awaiting Leader Approval - {student_name}"
+    
+    body = f"""Hi {leader_staff['name']},
+
+A critical incident has been reviewed and is now awaiting your approval.
+
+STUDENT: {student_name}
+REVIEWED BY: {reviewer_name}
+ACTION REQUIRED: Final review and approval
+
+Please log in to the Behaviour Support Tool to review and approve:
+https://behaviour-analysis-tool.streamlit.app
+
+This critical incident has been reviewed by {reviewer_name} and requires your final approval before the report can be submitted.
+
+---
+This is an automated notification from the Behaviour Support Tool.
+"""
+    
+    return send_email(leader_staff['email'], subject, body)
+
+def send_completion_notifications(critical, student, completed_by, reviewed_by, leader):
+    """Send emails to all parties when critical incident is completed"""
+    emails_sent = []
+    
+    subject = f"Critical Incident Report Completed - {student['name']}"
+    
+    # Email body for all recipients
+    body_template = """The critical incident report for {student_name} has been completed and submitted.
+
+WORKFLOW SUMMARY:
+- Completed by: {completed_by_name}
+- Reviewed by: {reviewed_by_name}
+- Approved by: {leader_name}
+- Date: {date}
+
+STUDENT: {student_name} (Grade {grade})
+PROGRAM: {program}
+
+The final report has been submitted to administration.
+
+---
+This is an automated notification from the Behaviour Support Tool.
+"""
+    
+    body = body_template.format(
+        student_name=student['name'],
+        completed_by_name=completed_by.get('name', 'Unknown'),
+        reviewed_by_name=reviewed_by.get('name', 'Unknown'),
+        leader_name=leader.get('name', 'Unknown'),
+        date=datetime.now().strftime('%d/%m/%Y %H:%M'),
+        grade=student.get('grade', 'Unknown'),
+        program=PROGRAM_NAMES.get(student.get('program', ''), 'Unknown')
+    )
+    
+    # Send to admin (hardcoded)
+    admin_email = "clc.admin281@schools.sa.edu.au"
+    if send_email(admin_email, subject, body):
+        emails_sent.append(f"Admin ({admin_email})")
+    
+    # Send to completing staff
+    if completed_by.get('email'):
+        if send_email(completed_by['email'], subject, body):
+            emails_sent.append(f"{completed_by['name']}")
+    
+    # Send to reviewing staff
+    if reviewed_by.get('email'):
+        if send_email(reviewed_by['email'], subject, body):
+            emails_sent.append(f"{reviewed_by['name']}")
+    
+    # Send to leader
+    if leader.get('email'):
+        if send_email(leader['email'], subject, body):
+            emails_sent.append(f"{leader['name']}")
+    
+    return emails_sent
+
+
 def init_state():
     ss = st.session_state
     if "logged_in" not in ss: ss.logged_in = False
@@ -2130,6 +2295,20 @@ def render_critical_incident_page():
                 st.info(f"📤 Assigned to **{record['assigned_to_name']}** for review")
                 st.info("💾 Critical incident data saved to database")
                 
+                # SEND EMAIL NOTIFICATION TO ASSIGNED STAFF
+                assigned_staff = next((s for s in st.session_state.staff if s['id'] == assigned_staff_id), None)
+                if assigned_staff:
+                    email_sent = send_assignment_notification(
+                        assigned_staff,
+                        current_user_name,
+                        student['name'],
+                        record['id']
+                    )
+                    if email_sent:
+                        st.success(f"📧 Email notification sent to {record['assigned_to_name']}")
+                    else:
+                        st.info("📧 Email notifications not configured (see settings)")
+                
                 # GENERATE ADMIN SUMMARY
                 admin_summary = generate_admin_summary(record, student, staff_name)
                 
@@ -2306,6 +2485,18 @@ def render_review_critical_page():
                             st.session_state.critical_incidents[idx] = critical
                             break
                     
+                    # SEND EMAIL NOTIFICATION TO LEADER
+                    leader_staff = next((s for s in st.session_state.staff if s['id'] == manager_id), None)
+                    if leader_staff:
+                        email_sent = send_leader_notification(
+                            leader_staff,
+                            current_user_name,
+                            student['name'],
+                            critical['id']
+                        )
+                        if email_sent:
+                            st.info(f"📧 Email notification sent to Leader")
+                    
                     st.success("✅ Review completed and forwarded to Leader for approval")
                     st.balloons()
                     st.info("↩️ Returning to landing page...")
@@ -2463,22 +2654,39 @@ def render_leader_approve_critical_page():
             
             st.success("✅ Critical incident approved and submitted")
             
-            # Generate email content
-            email_content = generate_critical_incident_email_content(critical, student, include_audit)
+            # SEND EMAIL NOTIFICATIONS TO ALL PARTIES
+            completed_by_staff = next((s for s in st.session_state.staff if s['id'] == critical.get('completed_by_id')), None)
+            reviewed_by_staff = next((s for s in st.session_state.staff if s['id'] == critical.get('reviewed_by_id')), None)
+            leader_staff = next((s for s in st.session_state.staff if s['id'] == current_user_id), None)
+            
+            emails_sent = send_completion_notifications(
+                critical,
+                student,
+                completed_by_staff or {},
+                reviewed_by_staff or {},
+                leader_staff or {}
+            )
             
             st.markdown("---")
-            st.markdown("### 📧 Email Notification Generated")
+            st.markdown("### 📧 Email Notifications")
             
-            with st.expander("Email Content (for manual sending)", expanded=True):
-                st.text_area("Email body:", email_content, height=400, key="email_display")
+            if emails_sent:
+                st.success(f"✅ Emails sent to: {', '.join(emails_sent)}")
+            else:
+                st.warning("⚠️ Email notifications not configured")
+                st.info("💡 To enable automatic emails, add SMTP settings to .streamlit/secrets.toml")
+            
+            # Generate email content for reference
+            email_content = generate_critical_incident_email_content(critical, student, include_audit)
+            
+            with st.expander("📋 View Email Content", expanded=False):
+                st.text_area("Email body (sent to all parties):", email_content, height=400, key="email_display")
                 
                 st.markdown("**Recipients:**")
                 st.markdown(f"- Admin: clc.admin281@schools.sa.edu.au")
                 st.markdown(f"- Completing Staff: {critical.get('completed_by_name', 'N/A')}")
                 st.markdown(f"- Reviewing Staff: {critical.get('reviewed_by_name', 'N/A')}")
                 st.markdown(f"- Leader: {current_user_name}")
-            
-            st.info("📝 **Note:** Email system not yet configured. Please copy the email content above and send manually, or configure SMTP settings for automatic sending.")
             
             st.balloons()
             
