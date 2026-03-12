@@ -1799,6 +1799,10 @@ def render_login_page():
     email = st.text_input("Email Address", placeholder="your.email@example.com", key="login_email")
     password = st.text_input("Password", type="password", placeholder="Enter password", key="login_pass")
     if st.button("Login", type="primary", use_container_width=True):
+        st.write(f"DEBUG: supabase connected = {supabase is not None}")
+        st.write(f"DEBUG: staff count = {len(st.session_state.staff)}")
+        for s in st.session_state.staff:
+            st.write(f"DEBUG: {s.get('email')} | password={s.get('password')} | hash_len={len(s.get('password_hash',''))}")
         if login_user(email, password):
             st.success(f"Welcome {st.session_state.current_user['name']}!")
             st.rerun()
