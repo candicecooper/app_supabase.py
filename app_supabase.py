@@ -1899,6 +1899,15 @@ def render_program_students_page():
                     go_to("incident_log", selected_student_id=stu["id"])
                 if st.button("📈 Analysis", key=f"ana_{stu['id']}", use_container_width=True):
                     go_to("student_analysis", selected_student_id=stu["id"])
+                if st.session_state.current_user.get("role") == "ADM":
+                    if st.button("📦 Archive", key=f"archive_prog_{stu['id']}", use_container_width=True):
+                        stu['archived'] = True
+                        if supabase:
+                            try:
+                                supabase.table('students').update({'archived': True}).eq('id', stu['id']).execute()
+                            except Exception as e:
+                                st.error(f"Archive failed: {e}")
+                        st.rerun()
 
 def render_incident_log_page():
     student_id = st.session_state.get("selected_student_id")
