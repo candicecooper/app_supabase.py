@@ -1101,13 +1101,15 @@ def load_students_from_db():
         for row in response.data:
             students.append({
                 "id": str(row['id']),
-                "name": row['name'],
-                "edid": row['edid'],
-                "grade": row['grade'],
-                "dob": row['dob'],
-                "program": row['program'],
-                "placement_start": row['placement_start'],
-                "placement_end": row['placement_end'],
+                "name": f"{row.get('first_name', '')} {row.get('last_name', '')}".strip() if row.get('first_name') else row.get('name', 'Unknown'),
+                "first_name": row.get('first_name', ''),
+                "last_name": row.get('last_name', ''),
+                "edid": row.get('edid', ''),
+                "grade": row.get('grade', ''),
+                "dob": row.get('dob', ''),
+                "program": row.get('program', ''),
+                "placement_start": row.get('placement_start'),
+                "placement_end": row.get('placement_end'),
                 "archived": row.get('archived', False)
             })
         return students  # Return empty list if no students in database
@@ -1122,12 +1124,13 @@ def save_student_to_db(student):
     
     try:
         data = {
-            "name": student['name'],
-            "edid": student['edid'],
-            "grade": student['grade'],
-            "dob": student['dob'],
-            "program": student['program'],
-            "placement_start": student['placement_start'],
+            "first_name": student.get('first_name') or student.get('name', '').split(' ')[0],
+            "last_name": student.get('last_name') or (' '.join(student.get('name', '').split(' ')[1:]) or ''),
+            "edid": student.get('edid', ''),
+            "grade": student.get('grade', ''),
+            "dob": student.get('dob', ''),
+            "program": student.get('program', ''),
+            "placement_start": student.get('placement_start'),
             "placement_end": student.get('placement_end'),
             "archived": student.get('archived', False)
         }
@@ -3500,7 +3503,8 @@ def render_admin_portal():
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
-                    new_name = st.text_input("Student Name *", placeholder="First L.")
+                    new_first_name = st.text_input("First Name *", placeholder="Boston")
+                    new_last_name = st.text_input("Last Name *", placeholder="Murphy")
                     new_grade = st.selectbox("Grade *", ["R", "Y1", "Y2", "Y3", "Y4", "Y5", "Y6", "Y7", "Y8", "Y9", "Y10", "Y11", "Y12"])
                 
                 with col2:
@@ -3516,14 +3520,30 @@ def render_admin_portal():
                     new_placement_end = st.date_input("Placement End Date (Optional)", value=None)
                 
                 submitted = st.form_submit_button("Add Student", type="primary")
-                
-              # FIXED INCIDENT LOGGING WITH DATABASE PERSISTENCE
-# Replace the incident submission section in render_incident_log_page()
-
-# Find this section (around line 1550-1620 in your file):
-# The part that starts with: if submitted:
-
-# REPLACE WITH THIS:
+            
+            if submitted:
+                if not new_first_name or not new_last_name or not new_edid or not new_grade or not new_program:
+                    st.error("Please complete all required fields marked with *")
+                else:
+                    new_student = {
+                        "id": f"stu_{uuid.uuid4().hex[:8]}",
+                        "first_name": new_first_name.strip(),
+                        "last_name": new_last_name.strip(),
+                        "name": f"{new_first_name.strip()} {new_last_name.strip()}",
+                        "edid": new_edid.strip(),
+                        "grade": new_grade,
+                        "dob": new_dob.isoformat(),
+                        "program": new_program,
+                        "placement_start": new_placement_start.isoformat(),
+                        "placement_end": new_placement_end.isoformat() if new_placement_end else None,
+                        "archived": False
+                    }
+                    if save_student_to_db(new_student):
+                        st.session_state.students.append(new_student)
+                        st.success(f"✅ Added {new_student['name']} to {new_program}")
+                        st.rerun()
+                    else:
+                        st.error("❌ Failed to save student to database")
 
     if submitted:
         if not location or not behaviour or not antecedent or not interventions:
