@@ -22,7 +22,7 @@ except ImportError:
     st.warning("⚠️ Supabase not installed. Run: pip install supabase")
 
 # Initialize Supabase client
-@st.cache_resource
+@st.cache_resource(ttl=60)
 def init_supabase() -> Client:
     """Initialize Supabase client with credentials from secrets"""
     if not SUPABASE_AVAILABLE:
@@ -1694,8 +1694,7 @@ def init_state():
     # Load from Supabase if available, otherwise use mock data
     if "students" not in ss: 
         ss.students = load_students_from_db() if supabase else MOCK_STUDENTS
-    if "staff" not in ss: 
-        ss.staff = load_staff_from_db() if supabase else MOCK_STAFF
+    ss.staff = load_staff_from_db() if supabase else MOCK_STAFF
     if "incidents" not in ss: 
         ss.incidents = load_incidents_from_db() if supabase else generate_mock_incidents(70)
     if "critical_incidents" not in ss: 
