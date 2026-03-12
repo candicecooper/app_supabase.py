@@ -1107,7 +1107,8 @@ def load_students_from_db():
                 "dob": row['dob'],
                 "program": row['program'],
                 "placement_start": row['placement_start'],
-                "placement_end": row['placement_end']
+                "placement_end": row['placement_end'],
+                "archived": row.get('archived', False)
             })
         return students  # Return empty list if no students in database
     except Exception as e:
@@ -1127,7 +1128,8 @@ def save_student_to_db(student):
             "dob": student['dob'],
             "program": student['program'],
             "placement_start": student['placement_start'],
-            "placement_end": student.get('placement_end')
+            "placement_end": student.get('placement_end'),
+            "archived": student.get('archived', False)
         }
         
         if 'id' in student and student['id'].startswith('stu_'):
@@ -1878,7 +1880,7 @@ def render_program_students_page():
         if st.button("⬅ Back to Landing", key="back_students"):
             go_to("landing")
     
-    students = [s for s in st.session_state.students if s["program"] == program]
+    students = [s for s in st.session_state.students if s["program"] == program and not s.get("archived", False)]
     for stu in students:
         stu_incidents = [i for i in st.session_state.incidents if i["student_id"] == stu["id"]]
         with st.container(border=True):
@@ -3488,7 +3490,7 @@ def render_admin_portal():
     st.markdown("---")
     
     # TABS
-    tab1, tab2, tab3 = st.tabs(["👥 Manage Students", "📊 System Overview", "👨‍💼 Staff Management"])
+    tab1, tab2, tab3, tab4 = st.tabs(["👥 Active Students", "📦 Archived Students", "📊 System Overview", "👨‍💼 Staff Management"])
     
     with tab1:
         st.markdown("### Student Management")
@@ -3576,7 +3578,7 @@ def render_admin_portal():
         for program in ["JP", "PY", "SY"]:
             st.markdown(f"#### {PROGRAM_NAMES[program]}")
             
-            program_students = [s for s in st.session_state.students if s["program"] == program]
+            program_students = [s for s in st.session_state.students if s["program"] == program and not s.get("archived", False)]
             
             if not program_students:
                 st.caption("No students in this program")
@@ -3619,6 +3621,15 @@ def render_admin_portal():
                         if st.button("✏️", key=f"edit_{student['id']}", help="Edit student"):
                             st.session_state.editing_student = student['id']
                             st.rerun()
+                        if st.button("📦 Archive", key=f"archive_{student['id']}", help="Archive student"):
+                            student['archived'] = True
+                            if supabase:
+                                try:
+                                    supabase.table('students').update({'archived': True}).eq('id', student['id']).execute()
+                                    st.success(f"✅ {student['name']} archived")
+                                except Exception as e:
+                                    st.error(f"Archive failed: {e}")
+                            st.rerun()
                 
                 # EDIT STUDENT
                 if st.session_state.get("editing_student") == student['id']:
@@ -3654,6 +3665,64 @@ def render_admin_portal():
                                     st.rerun()
     
     with tab2:
+        st.markdown("### 📦 Archived Students")
+        st.caption("These students have been archived. Their incident data is preserved and they can be restored at any time.")
+
+        archived_students = [s for s in st.session_state.students if s.get('archived', False)]
+
+        if not archived_students:
+            st.info("No archived students.")
+        else:
+            for program in ["JP", "PY", "SY"]:
+                prog_archived = [s for s in archived_students if s['program'] == program]
+                if not prog_archived:
+                    continue
+                st.markdown(f"#### {PROGRAM_NAMES[program]}")
+                for student in prog_archived:
+                    with st.container(border=True):
+                        col1, col2, col3 = st.columns([4, 3, 2])
+                        with col1:
+                            st.markdown(f"**{student['name']}**")
+                            st.caption(f"Grade {student['grade']} | EDID: {student.get('edid', 'N/A')}")
+                        with col2:
+                            if student.get('placement_start'):
+                                st.caption(f"📅 Placement: {datetime.fromisoformat(student['placement_start']).strftime('%d/%m/%Y')} – {datetime.fromisoformat(student['placement_end']).strftime('%d/%m/%Y') if student.get('placement_end') else 'ongoing'}")
+                            incident_count = len([i for i in st.session_state.incidents if i['student_id'] == student['id']])
+                            st.caption(f"📋 {incident_count} incidents on record")
+                        with col3:
+                            if st.button("♻️ Restore", key=f"restore_{student['id']}", help="Restore to active"):
+                                student['archived'] = False
+                                if supabase:
+                                    try:
+                                        supabase.table('students').update({'archived': False}).eq('id', student['id']).execute()
+                                        st.success(f"✅ {student['name']} restored")
+                                    except Exception as e:
+                                        st.error(f"Restore failed: {e}")
+                                st.rerun()
+                            if st.button("🗑️ Delete", key=f"permdelete_{student['id']}", help="Permanently delete — cannot be undone"):
+                                st.session_state[f"confirm_delete_{student['id']}"] = True
+                                st.rerun()
+                            if st.session_state.get(f"confirm_delete_{student['id']}"):
+                                st.warning(f"⚠️ Permanently delete {student['name']} and ALL their incident data?")
+                                col_yes, col_no = st.columns(2)
+                                with col_yes:
+                                    if st.button("Yes, delete", key=f"yes_delete_{student['id']}", type="primary"):
+                                        if supabase:
+                                            try:
+                                                supabase.table('incidents').delete().eq('student_id', student['id']).execute()
+                                                supabase.table('critical_incidents').delete().eq('student_id', student['id']).execute()
+                                                supabase.table('students').delete().eq('id', student['id']).execute()
+                                            except Exception as e:
+                                                st.error(f"Delete failed: {e}")
+                                        st.session_state.students = [s for s in st.session_state.students if s['id'] != student['id']]
+                                        st.session_state[f"confirm_delete_{student['id']}"] = False
+                                        st.rerun()
+                                with col_no:
+                                    if st.button("Cancel", key=f"no_delete_{student['id']}"):
+                                        st.session_state[f"confirm_delete_{student['id']}"] = False
+                                        st.rerun()
+
+    with tab3:
         st.markdown("### System Overview")
         
         col1, col2, col3, col4 = st.columns(4)
@@ -3683,7 +3752,7 @@ def render_admin_portal():
             active = len([s for s in st.session_state.students if s["program"] == prog and not s.get('placement_end')])
             st.write(f"**{PROGRAM_NAMES[prog]}:** {count} total ({active} active)")
     
-    with tab3:
+    with tab4:
         st.markdown("### Staff Management")
         
         # ADD NEW STAFF
