@@ -1708,77 +1708,53 @@ def init_state():
     if "show_critical_prompt" not in ss: ss.show_critical_prompt = False
 
 def login_user(email: str, password: str) -> bool:
-    """Login user with bcrypt password verification"""
+    """Login user - checks Supabase staff, with admin bypass for account owner"""
     email = (email or "").strip().lower()
     password = (password or "").strip()
-    
-    st.write(f"🔍 DEBUG: Attempting login with email: '{email}'")
-    st.write(f"🔍 DEBUG: Password length: {len(password)}")
-    st.write(f"🔍 DEBUG: Total staff in memory: {len(st.session_state.staff)}")
-    
+
     if not email or not password:
-        st.write("❌ DEBUG: Email or password empty")
         return False
-    
-    for idx, staff in enumerate(st.session_state.staff):
-        staff_email = staff.get("email", "").lower()
-        st.write(f"🔍 DEBUG: Checking staff #{idx}: {staff_email}")
-        
-        if staff_email == email:
-            st.write(f"✅ DEBUG: Email match found!")
-            st.write(f"🔍 DEBUG: Staff has password field: {staff.get('password')}")
-            st.write(f"🔍 DEBUG: Staff has password_hash field: {staff.get('password_hash', '')[:30]}...")
-            
-            # Get the stored hash
-            stored_hash = staff.get("password_hash", "")
-            if not stored_hash:
-                st.write("⚠️ DEBUG: No password_hash found, trying plain password")
-                if staff.get("password") == password:
-                    st.write("✅ DEBUG: Plain password match!")
-                    st.session_state.logged_in = True
-                    st.session_state.current_user = staff
-                    st.session_state.current_page = "landing"
-                    return True
-                else:
-                    st.write(f"❌ DEBUG: Plain password mismatch. Expected: '{staff.get('password')}', Got: '{password}'")
-                    continue
-            
-            # Verify password against bcrypt hash
+
+    # --- ADMIN BYPASS ---
+    # Allows access even if Supabase is down or staff table is empty
+    ADMIN_EMAIL = st.secrets.get("admin", {}).get("email", "")
+    ADMIN_PASSWORD = st.secrets.get("admin", {}).get("password", "")
+    if ADMIN_EMAIL and email == ADMIN_EMAIL.lower() and password == ADMIN_PASSWORD:
+        st.session_state.logged_in = True
+        st.session_state.current_user = {
+            "id": "admin_bypass",
+            "name": "Admin",
+            "email": ADMIN_EMAIL,
+            "role": "ADM",
+        }
+        st.session_state.current_page = "landing"
+        return True
+
+    # --- NORMAL STAFF LOGIN ---
+    for staff in st.session_state.staff:
+        if staff.get("email", "").lower() != email:
+            continue
+
+        # Try bcrypt hash first
+        stored_hash = staff.get("password_hash", "")
+        if stored_hash:
             try:
-                if isinstance(stored_hash, str):
-                    stored_hash_bytes = stored_hash.encode('utf-8')
-                else:
-                    stored_hash_bytes = stored_hash
-                    
-                password_bytes = password.encode('utf-8')
-                
-                st.write(f"🔍 DEBUG: Attempting bcrypt verification...")
-                if bcrypt.checkpw(password_bytes, stored_hash_bytes):
-                    st.write("✅ DEBUG: Bcrypt verification SUCCESS!")
+                hash_bytes = stored_hash.encode('utf-8') if isinstance(stored_hash, str) else stored_hash
+                if bcrypt.checkpw(password.encode('utf-8'), hash_bytes):
                     st.session_state.logged_in = True
                     st.session_state.current_user = staff
                     st.session_state.current_page = "landing"
                     return True
-                else:
-                    st.write("❌ DEBUG: Bcrypt verification FAILED")
-                    if staff.get("password") == password:
-                        st.write("✅ DEBUG: Using plain password fallback - LOGIN SUCCESS!")
-                        st.session_state.logged_in = True
-                        st.session_state.current_user = staff
-                        st.session_state.current_page = "landing"
-                        return True
-                    else:
-                        st.write(f"❌ DEBUG: Plain password mismatch")
-            except Exception as e:
-                st.write(f"⚠️ DEBUG: Bcrypt error: {e}")
-                if staff.get("password") == password:
-                    st.write("✅ DEBUG: Plain password fallback after exception - LOGIN SUCCESS!")
-                    st.session_state.logged_in = True
-                    st.session_state.current_user = staff
-                    st.session_state.current_page = "landing"
-                    return True
-    
-    st.write("❌ DEBUG: No matching staff found")
+            except Exception:
+                pass
+
+        # Fall back to plain password (legacy / newly added staff)
+        if staff.get("password") == password:
+            st.session_state.logged_in = True
+            st.session_state.current_user = staff
+            st.session_state.current_page = "landing"
+            return True
+
     return False
 def go_to(page: str, **kwargs):
     if page not in VALID_PAGES: return
