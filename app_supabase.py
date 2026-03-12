@@ -170,7 +170,7 @@ ANTECEDENTS = [
 INTERVENTIONS = ["CPI Supportive stance", "Offered break", "Reduced demand", "Provided choices", 
                 "Removed audience", "Visual supports", "Co-regulation", "Prompted coping skill", "Redirection"]
 LOCATIONS = ["JP Classroom", "PY Classroom", "SY Classroom", "Playground", "Library", "Office", "Student Gate", "Toilets"]
-VALID_PAGES = ["login", "landing", "program_students", "incident_log", "critical_incident", "review_critical", "leader_approve_critical", "student_analysis", "student_dashboard", "admin_portal"]
+VALID_PAGES = ["login", "landing", "program_students", "incident_log", "critical_incident", "review_critical", "leader_approve_critical", "student_analysis", "student_dashboard", "admin_portal", "centre_dashboard", "archived_students"]
 
 # AI HYPOTHESIS SYSTEM
 HYPOTHESIS_FUNCTIONS = ["To get", "To avoid"]
@@ -1772,6 +1772,53 @@ def get_student(sid):
 def get_session_from_time(t): 
     return "Morning" if t.hour < 11 else "Middle" if t.hour < 13 else "Afternoon"
 
+def get_current_sa_term():
+    """Return (term_number, term_start, term_end) for SA schools based on today's date."""
+    today = date.today()
+    year = today.year
+    # Approximate SA school term dates (adjust if DfE publishes different dates)
+    terms = [
+        (1, date(year, 1, 27),  date(year, 4, 11)),
+        (2, date(year, 4, 28),  date(year, 7, 4)),
+        (3, date(year, 7, 21),  date(year, 9, 26)),
+        (4, date(year, 10, 13), date(year, 12, 12)),
+    ]
+    for num, start, end in terms:
+        if start <= today <= end:
+            return num, start, end
+    # Between terms — return the next upcoming term
+    for num, start, end in terms:
+        if today < start:
+            return num, start, end
+    return 4, terms[3][1], terms[3][2]
+
+def save_placement_reflection(student_id, note, created_by):
+    """Save a placement reflection note to Supabase."""
+    if not supabase:
+        return None
+    try:
+        data = {
+            "student_id": student_id,
+            "note": note,
+            "created_by": created_by,
+            "created_at": datetime.now().isoformat()
+        }
+        resp = supabase.table('placement_reflections').insert(data).execute()
+        return resp.data[0] if resp.data else None
+    except Exception as e:
+        st.error(f"Could not save reflection: {e}")
+        return None
+
+def load_placement_reflections(student_id):
+    """Load placement reflections for a student from Supabase."""
+    if not supabase:
+        return []
+    try:
+        resp = supabase.table('placement_reflections').select('*').eq('student_id', student_id).order('created_at', desc=True).execute()
+        return resp.data or []
+    except Exception:
+        return []
+
 def generate_mock_incidents(n=70):
     incidents = []
     weights = {"stu_sy1": 12, "stu_py1": 10, "stu_sy2": 9, "stu_jp1": 8, "stu_py2": 7}
@@ -1852,10 +1899,36 @@ def render_landing_page():
                     go_to("leader_approve_critical")
     
     st.markdown("---")
-    col1, col2, col3 = st.columns(3)
-    with col1: st.metric("Students", len(st.session_state.students))
-    with col2: st.metric("Total Incidents", len(st.session_state.incidents))
-    with col3: st.metric("Critical", len([i for i in st.session_state.incidents if i.get("is_critical")]))
+    
+    # --- LIVE METRICS ---
+    term_num, term_start, term_end = get_current_sa_term()
+    active_students = [s for s in st.session_state.students if not s.get("archived", False)]
+    
+    term_incidents = [
+        i for i in st.session_state.incidents
+        if term_start <= date.fromisoformat(i["date"][:10]) <= term_end
+    ]
+    term_criticals = [i for i in term_incidents if i.get("is_critical")]
+    
+    st.markdown(f"#### 📊 Centre Overview — Term {term_num} ({term_start.strftime('%d %b')} – {term_end.strftime('%d %b %Y')})")
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        st.metric("Active Students", len(active_students))
+    with col2:
+        jp_count = len([s for s in active_students if s["program"] == "JP"])
+        py_count = len([s for s in active_students if s["program"] == "PY"])
+        sy_count = len([s for s in active_students if s["program"] == "SY"])
+        st.metric("JP / PY / SY", f"{jp_count} / {py_count} / {sy_count}")
+    with col3:
+        st.metric("Term Incidents", len(term_incidents))
+    with col4:
+        crit_pct = f"{len(term_criticals)/len(term_incidents)*100:.0f}%" if term_incidents else "0%"
+        st.metric("Term Critical", len(term_criticals), delta=crit_pct, delta_color="inverse")
+    
+    col_dash, _ = st.columns([2, 4])
+    with col_dash:
+        if st.button("📊 Centre Dashboard", use_container_width=True, key="goto_centre_dash"):
+            go_to("centre_dashboard")
     
     st.markdown("---")
     st.markdown("### Select Program")
@@ -1877,10 +1950,14 @@ def render_program_students_page():
     program = st.session_state.get("selected_program", "JP")
     st.markdown(f"## {PROGRAM_NAMES.get(program)} — Students")
     
-    col1, col2 = st.columns([6, 1])
+    col1, col2, col3 = st.columns([4, 2, 2])
     with col1:
         if st.button("⬅ Back to Landing", key="back_students"):
             go_to("landing")
+    with col2:
+        archived_count = len([s for s in st.session_state.students if s["program"] == program and s.get("archived", False)])
+        if st.button(f"📦 View Archived ({archived_count})", key="view_archived_btn", use_container_width=True):
+            go_to("archived_students", selected_program=program)
     
     students = [s for s in st.session_state.students if s["program"] == program and not s.get("archived", False)]
     for stu in students:
@@ -3481,10 +3558,299 @@ def render_student_dashboard():
         if st.button("⬅ Back", use_container_width=True, key="dash_back_btn"):
             go_to("program_students", selected_program=student["program"])
 
+    # ── PLACEMENT REFLECTIONS ─────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### 📝 Placement Reflections & Progress Notes")
+    st.caption("Record observations, placement milestones, changes in support, or progress notes. All entries are timestamped and preserved permanently.")
+
+    # Load existing reflections
+    reflections = load_placement_reflections(student_id)
+
+    # Add new reflection
+    with st.expander("➕ Add Reflection / Note", expanded=False):
+        ref_note = st.text_area(
+            "Note",
+            placeholder="e.g. 'Student returned after 2-week break. New BAP in place. Transition support added.' or 'Significant improvement in morning regulation this week — reduced incidents from 4 to 1.'",
+            height=120,
+            key="new_reflection_text"
+        )
+        if st.button("💾 Save Reflection", key="save_reflection_btn", type="primary"):
+            if ref_note.strip():
+                created_by = st.session_state.current_user.get("name", "Unknown")
+                saved = save_placement_reflection(student_id, ref_note.strip(), created_by)
+                if saved is not None:
+                    st.success("✅ Reflection saved")
+                    st.rerun()
+                else:
+                    # Fallback: store in session state if no Supabase
+                    if "local_reflections" not in st.session_state:
+                        st.session_state.local_reflections = {}
+                    if student_id not in st.session_state.local_reflections:
+                        st.session_state.local_reflections[student_id] = []
+                    st.session_state.local_reflections[student_id].insert(0, {
+                        "note": ref_note.strip(),
+                        "created_by": st.session_state.current_user.get("name", "Unknown"),
+                        "created_at": datetime.now().isoformat()
+                    })
+                    st.success("✅ Reflection saved locally")
+                    st.rerun()
+            else:
+                st.warning("Please enter a note before saving.")
+
+    # Merge Supabase + local session reflections
+    local_refs = st.session_state.get("local_reflections", {}).get(student_id, [])
+    all_reflections = reflections + local_refs
+
+    if not all_reflections:
+        st.info("No reflections recorded yet. Add the first one above.")
+    else:
+        st.markdown(f"**{len(all_reflections)} reflection{'s' if len(all_reflections) != 1 else ''} on record**")
+        for ref in all_reflections:
+            try:
+                ts = datetime.fromisoformat(ref["created_at"]).strftime("%d %b %Y, %-I:%M %p")
+            except Exception:
+                ts = ref.get("created_at", "Unknown date")
+            by = ref.get("created_by", "Unknown")
+            with st.container(border=True):
+                st.markdown(f"**{ts}** — *{by}*")
+                st.markdown(ref["note"])
+
+
+def render_centre_dashboard():
+    """Centre-wide dashboard — active students, term incidents, trends."""
+    st.markdown("## 📊 Centre Dashboard")
+    col_back, _ = st.columns([2, 6])
+    with col_back:
+        if st.button("⬅ Back to Landing", key="back_centre_dash"):
+            go_to("landing")
+
+    term_num, term_start, term_end = get_current_sa_term()
+    st.markdown(f"**Term {term_num}** — {term_start.strftime('%d %b')} to {term_end.strftime('%d %b %Y')}")
+    st.markdown("---")
+
+    active_students = [s for s in st.session_state.students if not s.get("archived", False)]
+    archived_students = [s for s in st.session_state.students if s.get("archived", False)]
+
+    term_incidents = [
+        i for i in st.session_state.incidents
+        if term_start <= date.fromisoformat(i["date"][:10]) <= term_end
+    ]
+    term_criticals = [i for i in term_incidents if i.get("is_critical")]
+
+    # ── TOP METRICS ────────────────────────────────────────────────────────
+    st.markdown("### 🏫 Active Students")
+    c1, c2, c3, c4 = st.columns(4)
+    programs = [("JP", "#2563eb"), ("PY", "#059669"), ("SY", "#d97706")]
+    counts = {p: len([s for s in active_students if s["program"] == p]) for p, _ in programs}
+    with c1:
+        st.metric("Total Active", len(active_students))
+        st.caption(f"{len(archived_students)} archived")
+    for (prog, color), col in zip(programs, [c2, c3, c4]):
+        with col:
+            st.metric(PROGRAM_NAMES[prog], counts[prog])
+
+    st.markdown("---")
+    st.markdown("### 📋 Term Incidents")
+    ci1, ci2, ci3, ci4 = st.columns(4)
+    with ci1:
+        st.metric("Total Incidents", len(term_incidents))
+    with ci2:
+        st.metric("Critical Incidents", len(term_criticals))
+    with ci3:
+        non_crit = len(term_incidents) - len(term_criticals)
+        st.metric("Minor Incidents", non_crit)
+    with ci4:
+        rate = f"{len(term_criticals)/len(term_incidents)*100:.0f}%" if term_incidents else "0%"
+        st.metric("Critical Rate", rate)
+
+    st.markdown("---")
+
+    # ── CHARTS ────────────────────────────────────────────────────────────
+    col_l, col_r = st.columns(2)
+
+    with col_l:
+        st.markdown("#### 📅 Weekly Incident Trend (This Term)")
+        if term_incidents:
+            inc_df = pd.DataFrame(term_incidents)
+            inc_df["date_parsed"] = pd.to_datetime(inc_df["date"])
+            inc_df["week"] = inc_df["date_parsed"].dt.to_period("W").apply(lambda r: r.start_time.date())
+            weekly = inc_df.groupby(["week", "is_critical"]).size().reset_index(name="count")
+            weekly["type"] = weekly["is_critical"].map({True: "Critical", False: "Minor"})
+            fig = go.Figure()
+            for itype, colour in [("Minor", "#334155"), ("Critical", "#dc2626")]:
+                d = weekly[weekly["type"] == itype]
+                fig.add_trace(go.Bar(x=d["week"].astype(str), y=d["count"], name=itype,
+                                     marker_color=colour))
+            fig.update_layout(barmode="stack", height=280, plot_bgcolor="white",
+                              paper_bgcolor="white", legend=dict(orientation="h"),
+                              margin=dict(l=10, r=10, t=10, b=40),
+                              xaxis_title="Week", yaxis_title="Incidents")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No incident data for this term yet.")
+
+    with col_r:
+        st.markdown("#### 🏫 Incidents by Program (This Term)")
+        if term_incidents:
+            inc_df2 = pd.DataFrame(term_incidents)
+            id_prog = {s["id"]: s["program"] for s in st.session_state.students}
+            inc_df2["program"] = inc_df2["student_id"].map(id_prog)
+            prog_counts = inc_df2.groupby(["program", "is_critical"]).size().reset_index(name="count")
+            prog_counts["label"] = prog_counts["program"].map(PROGRAM_NAMES)
+            prog_counts["type"] = prog_counts["is_critical"].map({True: "Critical", False: "Minor"})
+            fig2 = go.Figure()
+            for itype, colour in [("Minor", "#475569"), ("Critical", "#dc2626")]:
+                d2 = prog_counts[prog_counts["type"] == itype]
+                fig2.add_trace(go.Bar(x=d2["label"], y=d2["count"], name=itype,
+                                      marker_color=colour))
+            fig2.update_layout(barmode="stack", height=280, plot_bgcolor="white",
+                               paper_bgcolor="white", legend=dict(orientation="h"),
+                               margin=dict(l=10, r=10, t=10, b=40))
+            st.plotly_chart(fig2, use_container_width=True)
+        else:
+            st.info("No incident data for this term yet.")
+
+    # ── PER-PROGRAM BREAKDOWN ──────────────────────────────────────────────
+    st.markdown("---")
+    st.markdown("### 👥 Student Breakdown by Program")
+    for prog, colour in programs:
+        prog_students = [s for s in active_students if s["program"] == prog]
+        prog_incidents = [i for i in term_incidents if any(s["id"] == i["student_id"] for s in prog_students)]
+        prog_criticals = [i for i in prog_incidents if i.get("is_critical")]
+        with st.expander(f"**{PROGRAM_NAMES[prog]}** — {len(prog_students)} active | {len(prog_incidents)} incidents this term ({len(prog_criticals)} critical)", expanded=False):
+            if not prog_students:
+                st.caption("No active students in this program.")
+            else:
+                for stu in prog_students:
+                    stu_incs = [i for i in prog_incidents if i["student_id"] == stu["id"]]
+                    stu_crits = [i for i in stu_incs if i.get("is_critical")]
+                    sc1, sc2, sc3, sc4 = st.columns([3, 2, 2, 2])
+                    with sc1: st.markdown(f"**{stu['name']}** — Grade {stu['grade']}")
+                    with sc2: st.caption(f"📋 {len(stu_incs)} incidents")
+                    with sc3: st.caption(f"🔴 {len(stu_crits)} critical")
+                    with sc4:
+                        if st.button("Dashboard", key=f"cd_dash_{stu['id']}", use_container_width=True):
+                            go_to("student_dashboard", selected_student_id=stu["id"])
+
+
+def render_archived_students_page():
+    """View archived students — accessible to all staff."""
+    program = st.session_state.get("selected_program", "JP")
+    st.markdown(f"## 📦 Archived Students — {PROGRAM_NAMES.get(program)}")
+    st.caption("Discharged or departed students. Full incident history is preserved. Students can be reactivated if re-enrolled.")
+
+    if st.button("⬅ Back to Students", key="back_archived"):
+        go_to("program_students", selected_program=program)
+
+    archived = [s for s in st.session_state.students if s.get("archived", False) and s["program"] == program]
+
+    if not archived:
+        st.info(f"No archived students in {PROGRAM_NAMES[program]}.")
+        return
+
+    st.markdown(f"**{len(archived)} archived student{'s' if len(archived) != 1 else ''}**")
+    st.markdown("---")
+
+    for student in archived:
+        stu_incidents = [i for i in st.session_state.incidents if i["student_id"] == student["id"]]
+        stu_criticals = [i for i in stu_incidents if i.get("is_critical")]
+
+        with st.container(border=True):
+            hc1, hc2, hc3 = st.columns([4, 3, 3])
+            with hc1:
+                st.markdown(f"### {student['name']}")
+                st.caption(f"Grade {student['grade']} | EDID: {student.get('edid', 'N/A')}")
+            with hc2:
+                if student.get("placement_start"):
+                    s_date = datetime.fromisoformat(student["placement_start"]).strftime("%d/%m/%Y")
+                    e_date = datetime.fromisoformat(student["placement_end"]).strftime("%d/%m/%Y") if student.get("placement_end") else "ongoing"
+                    st.caption(f"📅 {s_date} – {e_date}")
+                st.caption(f"📋 {len(stu_incidents)} incidents | 🔴 {len(stu_criticals)} critical")
+            with hc3:
+                if st.button("♻️ Reactivate", key=f"reactivate_btn_{student['id']}", use_container_width=True, type="primary"):
+                    st.session_state[f"reactivating_{student['id']}"] = True
+                    st.rerun()
+
+            # Reactivation form
+            if st.session_state.get(f"reactivating_{student['id']}"):
+                with st.container(border=True):
+                    st.markdown("**♻️ Reactivate Student — New Placement**")
+                    ra1, ra2 = st.columns(2)
+                    with ra1:
+                        new_start = st.date_input("New Placement Start", value=date.today(), key=f"new_start_{student['id']}")
+                        new_program = st.selectbox("Program", ["JP", "PY", "SY"],
+                                                    index=["JP","PY","SY"].index(student["program"]),
+                                                    key=f"new_prog_{student['id']}")
+                    with ra2:
+                        reason = st.text_area("Reason / Notes", placeholder="e.g. New referral following suspension...",
+                                              key=f"reactivate_reason_{student['id']}", height=80)
+                    col_yes, col_no = st.columns(2)
+                    with col_yes:
+                        if st.button("✅ Confirm", key=f"confirm_reactivate_{student['id']}", type="primary"):
+                            student["archived"] = False
+                            student["program"] = new_program
+                            student["placement_start"] = new_start.isoformat()
+                            student["placement_end"] = None
+                            if supabase:
+                                try:
+                                    supabase.table("students").update({
+                                        "archived": False, "program": new_program,
+                                        "placement_start": new_start.isoformat(), "placement_end": None
+                                    }).eq("id", student["id"]).execute()
+                                except Exception as e:
+                                    st.error(f"DB update failed: {e}")
+                            note = f"**Student reactivated.** New placement start: {new_start.strftime('%d/%m/%Y')} | Program: {new_program}"
+                            if reason.strip():
+                                note += f"\nReason: {reason.strip()}"
+                            save_placement_reflection(student["id"], note,
+                                                      st.session_state.current_user.get("name", "Unknown"))
+                            st.session_state[f"reactivating_{student['id']}"] = False
+                            st.success(f"✅ {student['name']} reactivated in {PROGRAM_NAMES[new_program]}")
+                            st.rerun()
+                    with col_no:
+                        if st.button("Cancel", key=f"cancel_reactivate_{student['id']}"):
+                            st.session_state[f"reactivating_{student['id']}"] = False
+                            st.rerun()
+
+            # Incident History
+            with st.expander(f"📋 Incident History ({len(stu_incidents)})", expanded=False):
+                if not stu_incidents:
+                    st.caption("No incidents recorded.")
+                else:
+                    for inc in sorted(stu_incidents, key=lambda x: x["date"], reverse=True):
+                        badge = "🔴 CRITICAL" if inc.get("is_critical") else "🟡"
+                        st.markdown(f"**{inc['date']}** — Sev {inc.get('severity','?')} {badge} — {inc.get('behaviour_type','')}")
+                        st.caption(f"Location: {inc.get('location','')} | Antecedent: {inc.get('antecedent','')}")
+                        st.divider()
+
+            # Placement Reflections
+            reflections = load_placement_reflections(student["id"])
+            local_refs = st.session_state.get("local_reflections", {}).get(student["id"], [])
+            all_refs = reflections + local_refs
+            with st.expander(f"📝 Placement Reflections ({len(all_refs)})", expanded=False):
+                new_ref = st.text_area("Add note", placeholder="Observations, placement changes, progress...",
+                                       key=f"arch_ref_{student['id']}", height=70)
+                if st.button("Save Note", key=f"save_arch_ref_{student['id']}"):
+                    if new_ref.strip():
+                        save_placement_reflection(student["id"], new_ref.strip(),
+                                                  st.session_state.current_user.get("name", "Unknown"))
+                        st.success("✅ Saved")
+                        st.rerun()
+                if not all_refs:
+                    st.caption("No reflections yet.")
+                else:
+                    for ref in all_refs:
+                        try:
+                            ts = datetime.fromisoformat(ref["created_at"]).strftime("%d %b %Y, %-I:%M %p")
+                        except Exception:
+                            ts = ref.get("created_at", "")
+                        st.markdown(f"**{ts}** — *{ref.get('created_by','')}*")
+                        st.markdown(ref["note"])
+                        st.divider()
 
 
 def render_admin_portal():
-    """Admin portal for managing students and placement dates"""
+    """Admin portal for managing students and placement dates\""""
     if st.session_state.current_user.get("role") != "ADM":
         st.error("⛔ Access Denied: Admin privileges required")
         if st.button("⬅ Back to Landing"):
@@ -3986,6 +4352,8 @@ def main():
     elif page == "student_analysis": render_student_analysis_page()
     elif page == "student_dashboard": render_student_dashboard()
     elif page == "admin_portal": render_admin_portal()
+    elif page == "centre_dashboard": render_centre_dashboard()
+    elif page == "archived_students": render_archived_students_page()
     else: render_landing_page()
 
 if __name__ == "__main__":
