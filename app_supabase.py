@@ -1799,15 +1799,11 @@ def render_login_page():
     email = st.text_input("Email Address", placeholder="your.email@example.com", key="login_email")
     password = st.text_input("Password", type="password", placeholder="Enter password", key="login_pass")
     if st.button("Login", type="primary", use_container_width=True):
-        st.write(f"DEBUG: supabase connected = {supabase is not None}")
-        st.write(f"DEBUG: staff count = {len(st.session_state.staff)}")
-        for s in st.session_state.staff:
-            st.write(f"DEBUG: {s.get('email')} | password={s.get('password')} | hash_len={len(s.get('password_hash',''))}")
         if login_user(email, password):
             st.success(f"Welcome {st.session_state.current_user['name']}!")
             st.rerun()
         else:
-            st.error("Invalid credentials")
+            st.error("Invalid credentials. Contact your admin to reset your password.")
 
 def render_landing_page():
     user = st.session_state.current_user or {}
@@ -3810,6 +3806,11 @@ def render_admin_portal():
                                     
                                     edit_notes = st.text_area("Notes", value=staff.get('notes', ''), key=f"edit_staff_notes_{staff['id']}")
                                     
+                                    st.markdown("**Reset Password**")
+                                    new_password = st.text_input("New Password (leave blank to keep current)", 
+                                                                  type="password",
+                                                                  key=f"new_pass_{staff['id']}")
+                                    
                                     col_save, col_cancel, col_delete = st.columns([1, 1, 1])
                                     with col_save:
                                         if st.form_submit_button("💾 Save Changes", type="primary"):
@@ -3820,8 +3821,21 @@ def render_admin_portal():
                                             staff['program'] = edit_program if edit_program != "All Programs" else None
                                             staff['receive_critical_emails'] = edit_receive_emails
                                             staff['notes'] = edit_notes if edit_notes else None
+                                            # Handle password reset
+                                            if new_password:
+                                                staff['password'] = new_password
+                                                staff['password_hash'] = ""
+                                                if supabase:
+                                                    try:
+                                                        supabase.table('staff').update({
+                                                            'password': new_password,
+                                                            'password_hash': None
+                                                        }).eq('id', staff['id']).execute()
+                                                    except Exception as e:
+                                                        st.error(f"Password update failed: {e}")
+                                            save_staff_to_db(staff)
                                             st.session_state.editing_staff = None
-                                            st.success("✅ Updated")
+                                            st.success("✅ Updated" + (" (password reset)" if new_password else ""))
                                             st.rerun()
                                     
                                     with col_cancel:
