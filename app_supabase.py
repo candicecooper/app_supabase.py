@@ -3794,11 +3794,10 @@ def render_admin_portal():
                                         edit_role = st.selectbox("Role", ["TSS", "Teacher", "Leader", "ADM"],
                                                                 index=["TSS", "Teacher", "Leader", "ADM"].index(staff['role']),
                                                                 key=f"edit_staff_role_{staff['id']}")
-                                        edit_program = st.selectbox("Program", ["JP", "PY", "SY", "All Programs"],
-                                                                   index=["JP", "PY", "SY", "All Programs"].index(
-                                                                       PROGRAM_NAMES.get(staff.get('program'), "All Programs") 
-                                                                       if staff.get('program') else "All Programs"
-                                                                   ) if staff.get('program') else 3,
+                                        _prog_options = ["JP", "PY", "SY", "All Programs"]
+                                        _prog_val = staff.get('program') if staff.get('program') in ["JP", "PY", "SY"] else "All Programs"
+                                        edit_program = st.selectbox("Program", _prog_options,
+                                                                   index=_prog_options.index(_prog_val),
                                                                    key=f"edit_staff_program_{staff['id']}")
                                         edit_receive_emails = st.checkbox("Receive critical incident emails",
                                                                          value=staff.get('receive_critical_emails', True),
