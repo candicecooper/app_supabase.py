@@ -1167,7 +1167,7 @@ def load_staff_from_db():
                 "name": row['name'],
                 "email": row['email'],
                 "password": row.get('password'),  # Keep for backward compatibility
-                "password_hash": row.get('password_hash', row.get('password')),  # Use password_hash if available
+                "password_hash": row.get('password_hash') or "",  # Only use actual hash, never fall back to plain password
                 "role": row['role'],
                 "program": row.get('program'),
                 "phone": row.get('phone'),
