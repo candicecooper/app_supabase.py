@@ -40,6 +40,9 @@ def init_supabase() -> Client:
 # Global Supabase client
 supabase: Client = init_supabase()
 
+# ── Sensory Overview app URL — update once deployed ───────────────────────────
+SENSORY_OVERVIEW_APP_URL = "https://your-sensory-overview-app.streamlit.app"
+
 st.set_page_config(page_title="CLC Behaviour Support", page_icon="📊", layout="wide", initial_sidebar_state="collapsed")
 
 # MINIMALIST PROFESSIONAL STYLING
@@ -1909,6 +1912,166 @@ def render_program_students_page():
                                 st.error(f"Archive failed: {e}")
                         st.rerun()
 
+def render_sensory_panel(student_id: str, student_name: str):
+    """
+    Renders a collapsible sensory profile panel for a student.
+    Shows HIGH/MEDIUM priority areas, review status, and links to the Sensory Overview app.
+    Safe to call anywhere a student is in context — handles missing data gracefully.
+    """
+    SECTION_ICONS = {
+        "Body Awareness (Interoception)": "🫀",
+        "Visual":                         "👁️",
+        "Sense of Body in Space":         "🗺️",
+        "Auditory":                       "👂",
+        "Auditory Processing":            "🔊",
+        "Smell":                          "👃",
+        "Touch and Textures":             "🤚",
+        "Kinaesthetic":                   "🏃",
+    }
+
+    def _priority_css(pct):
+        if pct >= 60:   return "high", "🔴", "#c62828", "#fff8f8"
+        elif pct >= 30: return "med",  "🟡", "#e65100", "#fffaf5"
+        return "low", "🟢", "#2e7d32", "#f6fff6"
+
+    def _review_status(review_date_str):
+        if not review_date_str:
+            return "No review date set", "#888"
+        try:
+            rv = date.fromisoformat(review_date_str)
+            delta = (rv - date.today()).days
+            if delta < 0:
+                return f"⚠️ Review overdue ({abs(delta)} days ago)", "#c62828"
+            elif delta <= 14:
+                return f"🟡 Review due in {delta} days", "#e65100"
+            return f"🟢 Review due {rv.strftime('%d %b %Y')}", "#2e7d32"
+        except Exception:
+            return review_date_str, "#555"
+
+    # Fetch latest overview for this student
+    overview = None
+    if supabase:
+        try:
+            res = supabase.table("sensory_overviews") \
+                .select("overview_date,review_date,completed_by,priority_results") \
+                .eq("student_id", student_id) \
+                .order("overview_date", desc=True) \
+                .limit(1).execute()
+            overview = res.data[0] if res.data else None
+        except Exception:
+            pass
+
+    # Determine expander label
+    if not overview:
+        label = f"🧠 Sensory Profile — {student_name}  ·  ⚠️ No overview on file"
+    else:
+        ov_date = overview.get("overview_date", "—")
+        rv_label, _ = _review_status(overview.get("review_date"))
+        label = f"🧠 Sensory Profile — {student_name}  ·  Last overview: {ov_date}  ·  {rv_label}"
+
+    with st.expander(label, expanded=False):
+        if not overview:
+            st.markdown(
+                f"""<div style="background:#fff8e1;border:2px dashed #C8760A;border-radius:8px;
+                padding:12px 16px;color:#7a5800;font-size:0.9rem;">
+                ⚠️ No sensory overview has been completed for <strong>{student_name}</strong> yet.
+                Click below to start one — the student will be pre-selected.
+                </div>""",
+                unsafe_allow_html=True,
+            )
+            st.link_button(
+                "➕ Start Sensory Overview",
+                f"{SENSORY_OVERVIEW_APP_URL}?student_id={student_id}",
+                use_container_width=True,
+            )
+            return
+
+        # Meta bar
+        ov_date  = overview.get("overview_date", "—")
+        rev_date = overview.get("review_date")
+        by       = overview.get("completed_by", "—")
+        rv_label, rv_colour = _review_status(rev_date)
+
+        st.markdown(
+            f"""<div style="background:#e8f4f4;border-radius:6px;padding:8px 14px;
+            font-size:0.82rem;color:#2a5a5a;margin-bottom:10px;">
+            📅 Overview: <strong>{ov_date}</strong> &nbsp;·&nbsp;
+            Completed by: <strong>{by}</strong> &nbsp;·&nbsp;
+            <span style="color:{rv_colour};font-weight:700;">{rv_label}</span>
+            </div>""",
+            unsafe_allow_html=True,
+        )
+
+        # Parse priorities
+        try:
+            pr = overview["priority_results"]
+            if isinstance(pr, str):
+                pr = json.loads(pr)
+        except Exception:
+            pr = {}
+
+        if not pr:
+            st.warning("Priority data unavailable for this overview.")
+        else:
+            high = [(s, i) for s, i in pr.items() if i.get("priority") == "HIGH PRIORITY"]
+            med  = [(s, i) for s, i in pr.items() if i.get("priority") == "MEDIUM PRIORITY"]
+
+            if high:
+                st.markdown("**🔴 High Priority Sensory Areas**")
+                hcols = st.columns(min(len(high), 4))
+                for idx, (sec, info) in enumerate(high):
+                    icon = SECTION_ICONS.get(sec, "")
+                    pct  = info.get("pct", 0)
+                    _, _, colour, bg = _priority_css(pct)
+                    with hcols[idx % 4]:
+                        st.markdown(
+                            f"""<div style="background:{bg};border-left:4px solid {colour};
+                            padding:8px 12px;border-radius:6px;margin:2px 0;">
+                            <div style="font-size:0.72rem;font-weight:700;color:#555;">{icon} {sec}</div>
+                            <div style="font-size:1rem;font-weight:800;color:{colour};">🔴 HIGH</div>
+                            <div style="font-size:0.7rem;color:#777;">{info.get('checked',0)}/{info.get('total',0)} ({pct}%)</div>
+                            </div>""",
+                            unsafe_allow_html=True,
+                        )
+
+            if med:
+                st.markdown("**🟡 Medium Priority Sensory Areas**")
+                mcols = st.columns(min(len(med), 4))
+                for idx, (sec, info) in enumerate(med):
+                    icon = SECTION_ICONS.get(sec, "")
+                    pct  = info.get("pct", 0)
+                    _, _, colour, bg = _priority_css(pct)
+                    with mcols[idx % 4]:
+                        st.markdown(
+                            f"""<div style="background:{bg};border-left:4px solid {colour};
+                            padding:8px 12px;border-radius:6px;margin:2px 0;">
+                            <div style="font-size:0.72rem;font-weight:700;color:#555;">{icon} {sec}</div>
+                            <div style="font-size:1rem;font-weight:800;color:{colour};">🟡 MEDIUM</div>
+                            <div style="font-size:0.7rem;color:#777;">{info.get('checked',0)}/{info.get('total',0)} ({pct}%)</div>
+                            </div>""",
+                            unsafe_allow_html=True,
+                        )
+
+            if not high and not med:
+                st.success("🟢 All sensory areas are low priority based on the most recent overview.")
+
+        # Footer links
+        st.markdown("---")
+        lc1, lc2 = st.columns(2)
+        with lc1:
+            st.link_button(
+                "🔄 Start updated overview",
+                f"{SENSORY_OVERVIEW_APP_URL}?student_id={student_id}",
+                use_container_width=True,
+            )
+        with lc2:
+            st.link_button(
+                "📋 View all sensory profiles",
+                SENSORY_OVERVIEW_APP_URL,
+                use_container_width=True,
+            )
+
+
 def render_incident_log_page():
     student_id = st.session_state.get("selected_student_id")
     student = get_student(student_id)
@@ -1928,7 +2091,10 @@ def render_incident_log_page():
             go_to("landing")
     
     show_severity_guide()
-    
+
+    # Sensory profile — gives staff context before logging
+    render_sensory_panel(student_id, student["name"])
+
     # Check if critical form is required
     if st.session_state.show_critical_prompt:
         inc_info = st.session_state.get("last_incident_info", {})
@@ -3343,7 +3509,12 @@ def render_student_dashboard():
             go_to("student_analysis", selected_student_id=student_id)
     
     st.markdown("---")
-    
+
+    # Sensory profile summary
+    render_sensory_panel(student_id, student["name"])
+
+    st.markdown("---")
+
     incidents = [i for i in st.session_state.incidents if i["student_id"] == student_id]
     critical = [c for c in st.session_state.critical_incidents if c["student_id"] == student_id]
     
